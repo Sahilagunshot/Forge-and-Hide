@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<section class="hero-slider">
+
+    <div class="slide active">
+
+        <div class="hero-content">
+
+            <div class="hero-left">
+
+                <h5>Forge & Hide</h5>
+
+                <h1>
+                    Luxury Leather<br>
+                    Duffel Bags
+                </h1>
+
+                <p>
+                    Built Slowly.<br>
+                    Crafted for Lifetime.
+                </p>
+
+                <a href="/shop">
+                    <button class="hero-button">
+                        Explore Collection
+                    </button>
+                </a>
+
+            </div>
+
+            <div class="hero-right">
+
+                <img
+                src="{{ url_for('static', filename='uploads/green-duffle-side-1.png') }}"
+                alt="Green Duffel">
+
+            </div>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="hero">
+
+    <div class="hero-left">
+
+        <span class="hero-tag">
+            FORGE & HIDE
+        </span>
+
+        <h1>
+            Luxury Leather<br>
+            Duffel Bags
+        </h1>
+
+        <p>
+            Handcrafted using premium full grain leather.<br>
+            Built Slowly. Crafted for Lifetime.
+        </p>
+
+        <a href="/shop" class="hero-btn">
+            Explore Collection
+        </a>
+
+    </div>
+
+    <div class="hero-right">
+
+        <img
+        src="{{ url_for('static', filename='uploads/green-duffle-side-1.png') }}"
+        alt="Luxury Leather Duffel">
+
+    </div>
+
+</section>
+
+<section class="categories">
+
+    <h2>Shop by Category</h2>
+
+    <div class="category-grid">
+
+        <a href="/shop" class="category-card">
+
+            <h3>Leather Duffels</h3>
+
+            <p>Luxury travel companions</p>
+
+        </a>
+
+        <a href="/shop" class="category-card">
+
+            <h3>Leather Jackets</h3>
+
+            <p>Timeless craftsmanship</p>
+
+        </a>
+
+        <a href="/shop" class="category-card">
+
+            <h3>Leather Trolleys</h3>
+
+            <p>Travel with elegance</p>
+
+        </a>
+
+    </div>
+
+</section>
+
+<section class="featured-products">
+
+    <h2>Featured Collection</h2>
+
+    <div class="product-grid">
+
+        {% for product in featured_products %}
+
+        <div class="product-card">
+
+            {% if product.image %}
+
+            <img
+            src="{{ url_for('static', filename='uploads/' + product.image) }}"
+            alt="{{ product.name }}">
+
+            {% endif %}
+
+            <h3>{{ product.name }}</h3>
+
+            <p>₹ {{ product.price }}</p>
+
+            <a href="/shop">
+
+                <button>View Product</button>
+
+            </a>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+</section>
+
+
+<section class="home-section">
+
+    <h2 class="section-title">
+
+        Why Forge & Hide
+
+    </h2>
+
+    <div class="category-grid">
+
+        <div class="category-card">
+
+            <h3>Premium Leather</h3>
+
+            <p>
+
+                Full grain leather crafted to age beautifully.
+
+            </p>
+
+        </div>
+
+        <div class="category-card">
+
+            <h3>Handcrafted</h3>
+
+            <p>
+
+                Every stitch reflects precision and craftsmanship.
+
+            </p>
+
+        </div>
+
+        <div class="category-card">
+
+            <h3>Built For Life</h3>
+
+            <p>
+
+                Timeless products made for decades of use.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="craftsmanship">
+
+    <div class="craft-left">
+
+        <h2>Crafted by Hand.<br>Built for Generations.</h2>
+
+        <p>
+
+            Every Forge & Hide product is handcrafted using carefully
+            selected premium leather, precision hardware and timeless
+            craftsmanship.
+
+        </p>
+
+        <p>
+
+            We don't chase trends.
+            We build leather goods that become better with age.
+
+        </p>
+
+    </div>
+
+    <div class="craft-right">
+
+        <div class="craft-box">
+
+            <h3>100%</h3>
+
+            <span>Handcrafted</span>
+
+        </div>
+
+        <div class="craft-box">
+
+            <h3>Premium</h3>
+
+            <span>Full Grain Leather</span>
+
+        </div>
+
+        <div class="craft-box">
+
+            <h3>Built</h3>
+
+            <span>For Lifetime Use</span>
+
+        </div>
+
+        <div class="craft-box">
+
+            <h3>Luxury</h3>
+
+            <span>Made in India</span>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="instagram-section">
+
+    <h2>Inside Forge & Hide</h2>
+
+    <p>
+        Discover our craftsmanship, premium leather and timeless creations.
+    </p>
+
+    <div class="instagram-grid">
+
+        <div class="insta-card">Duffel Campaign</div>
+
+        <div class="insta-card">Leather Jacket</div>
+
+        <div class="insta-card">Workshop</div>
+
+        <div class="insta-card">Luxury Trolley</div>
+
+        <div class="insta-card">Leather Details</div>
+
+        <div class="insta-card">Travel Collection</div>
+
+    </div>
+
+</section>
+
+<section class="newsletter">
+
+    <div class="newsletter-content">
+
+        <h2>Join The Forge & Hide Circle</h2>
+
+        <p>
+
+            Be the first to discover new collections,
+            limited editions and exclusive offers.
+
+        </p>
+
+        <form class="newsletter-form">
+
+            <input
+                type="email"
+                placeholder="Enter your email">
+
+            <button type="submit">
+
+                Subscribe
+
+            </button>
+
+        </form>
+
+    </div>
+
+</section>
+
+{% endblock %}

@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}Forge & Hide{% endblock %}</title>
+
+    <link rel="stylesheet"
+          href="{{ url_for('static', filename='css/style.css') }}">
+
+</head>
+
+<body>
+
+    <nav>
+
+    <div class="logo">
+    <a href="/">Forge & Hide</a>
+</div>
+
+    <ul>
+
+        <li><a href="/">Home</a></li>
+
+        <li><a href="/shop">Shop</a></li>
+
+        <li><a href="#">Collections</a></li>
+
+        <li><a href="#">Journal</a></li>
+
+        <li><a href="#">About</a></li>
+
+        {% if session.get("customer_id") %}
+
+<li>
+
+    <a href="#">
+
+        Hi, {{ session.get("customer_name") }}
+
+    </a>
+
+</li>
+
+<li>
+
+    <a href="/customer/logout">
+
+        Logout
+
+    </a>
+
+</li>
+
+{% else %}
+
+{% if session.get("customer_id") %}
+
+<li>
+    <a href="#">
+        Hi, {{ session.get("customer_name") }}
+    </a>
+</li>
+
+<li>
+    <a href="/customer/logout">
+        Logout
+    </a>
+</li>
+
+{% else %}
+
+<li>
+    <a href="/register">
+        Register
+    </a>
+</li>
+
+<li>
+    <a href="/login">
+        Login
+    </a>
+</li>
+
+{% endif %}
+
+{% endif %}
+
+        <li><a href="#">Contact</a></li>
+
+    </ul>
+
+    <div class="nav-icons">
+
+        <a href="#">🔍</a>
+
+        <a href="#">❤</a>
+
+        <a href="#">🛒</a>
+
+    </div>
+
+</nav>
+
+
+    {% block content %}
+
+    {% endblock %}
+
+
+    <footer class="footer">
+
+    <div class="footer-container">
+
+        <div>
+
+            <h2>Forge & Hide</h2>
+
+            <p>
+
+                Handcrafted luxury leather goods made with timeless craftsmanship.
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <h3>Quick Links</h3>
+
+            <p><a href="/">Home</a></p>
+
+            <p><a href="/shop">Shop</a></p>
+
+            <p><a href="#">About</a></p>
+
+            <p><a href="#">Contact</a></p>
+
+        </div>
+
+        <div>
+
+            <h3>Contact</h3>
+
+            <p>Mumbai, India</p>
+
+            <p>info@forgeandhide.com</p>
+
+        </div>
+
+    </div>
+
+    <hr>
+
+    <p class="copyright">
+
+        © 2026 Forge & Hide. All Rights Reserved.
+
+    </p>
+
+</footer>
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+
+</body>
+
+</html>

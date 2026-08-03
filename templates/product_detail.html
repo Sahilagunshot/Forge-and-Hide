@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ product.name }} | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div class="product-detail">
+
+    <div class="product-image">
+
+        {% if product.image %}
+
+        <img
+        src="{{ url_for('static', filename='uploads/' + product.image) }}"
+        alt="{{ product.name }}">
+
+        {% endif %}
+
+    </div>
+
+    <div class="product-content">
+
+        <h1>{{ product.name }}</h1>
+
+        <h2>₹ {{ product.price }}</h2>
+
+        <p>
+
+            {{ product.description }}
+
+        </p>
+
+        <p>
+
+            <strong>Stock :</strong>
+
+            {{ product.stock }}
+
+        </p>
+
+        <br>
+
+        <button class="hero-button">
+
+            Add To Cart
+
+        </button>
+
+    </div>
+
+</div>
+
+{% endblock %}

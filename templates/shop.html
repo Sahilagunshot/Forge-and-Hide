@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Shop | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<h1 class="section-title">
+
+    Shop Collection
+
+</h1>
+
+<div class="product-grid">
+
+{% for product in products %}
+
+<div class="product-card">
+
+    {% if product.image %}
+
+    <img
+    src="{{ url_for('static', filename='uploads/' + product.image) }}">
+
+    {% endif %}
+
+    <div class="product-info">
+
+        <h3>
+
+            {{ product.name }}
+
+        </h3>
+
+        <p>
+
+            ₹ {{ product.price }}
+
+        </p>
+
+        <br>
+
+        <a
+        href="{{ url_for('product_detail', slug=product.slug) }}">
+
+            <button class="hero-button">
+
+                View Product
+
+            </button>
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% endblock %}

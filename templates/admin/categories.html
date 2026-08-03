@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+    <title>Categories</title>
+
+    <style>
+
+        body{
+            font-family:Arial;
+            background:#111;
+            color:white;
+            padding:40px;
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+            margin-top:25px;
+        }
+
+        th,td{
+            border:1px solid #444;
+            padding:12px;
+            text-align:center;
+        }
+
+        th{
+            background:#222;
+            color:#d4af37;
+        }
+
+        a{
+            color:white;
+            text-decoration:none;
+        }
+
+        .btn{
+            padding:8px 15px;
+            background:green;
+            border-radius:6px;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<h1>Categories</h1>
+
+<p>
+
+<a
+class="btn"
+href="{{ url_for('add_category') }}">
++ Add Category
+</a>
+
+</p>
+
+<table>
+
+<tr>
+
+<th>ID</th>
+<th>Name</th>
+<th>Slug</th>
+<th>Action</th>
+
+</tr>
+
+{% for category in categories %}
+
+<tr>
+
+<td>{{ category.id }}</td>
+
+<td>{{ category.name }}</td>
+
+<td>{{ category.slug }}</td>
+
+<td>
+
+<a
+class="btn"
+href="{{ url_for('edit_category', id=category.id) }}">
+Edit
+</a>
+
+<a
+class="btn"
+style="background:red;"
+href="{{ url_for('delete_category', id=category.id) }}"
+onclick="return confirm('Delete this category?')">
+Delete
+</a>
+
+</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</body>
+
+</html>
