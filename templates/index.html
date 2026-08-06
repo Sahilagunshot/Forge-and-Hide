@@ -6,77 +6,96 @@ Home | Forge & Hide
 
 {% block content %}
 
-<section class="hero-slider">
+<section class="hero-section">
 
-    <div class="slide active">
+    <div class="hero-content">
 
-        <div class="hero-content">
+        <div class="hero-left">
 
-            <div class="hero-left">
+            <span class="hero-tag">
+                FORGE & HIDE
+            </span>
 
-                <h5>Forge & Hide</h5>
+            <h1>
+                Luxury Leather<br>
+                Duffel Bags
+            </h1>
 
-                <h1>
-                    Luxury Leather<br>
-                    Duffel Bags
-                </h1>
+            <p>
 
-                <p>
-                    Built Slowly.<br>
-                    Crafted for Lifetime.
-                </p>
+                Handcrafted from premium full-grain leather.<br>
 
-                <a href="/shop">
-                    <button class="hero-button">
-                        Explore Collection
-                    </button>
-                </a>
+                Built Slowly. Crafted for Lifetime.
 
-            </div>
+            </p>
 
-            <div class="hero-right">
+            <a href="/shop">
 
-                <img
-                src="{{ url_for('static', filename='uploads/green-duffle-side-1.png') }}"
-                alt="Green Duffel">
+                <button class="hero-button">
 
-            </div>
+                    Explore Collection
+
+                </button>
+
+            </a>
 
         </div>
+
+        <div class="hero-right">
+
+    <img
+        id="heroImage1"
+        src="{{ url_for('static', filename='uploads/green-duffle-side-1.jpg') }}"
+        alt="Luxury Leather Duffel">
+
+</div>
 
     </div>
 
 </section>
 
-<section class="hero">
+<section class="hero-section">
 
-    <div class="hero-left">
+    <div class="hero-content">
 
-        <span class="hero-tag">
-            FORGE & HIDE
-        </span>
+        <div class="hero-right">
 
-        <h1>
-            Luxury Leather<br>
-            Duffel Bags
-        </h1>
+    <img
+        id="heroImage2"
+        src="{{ url_for('static', filename='uploads/tan-duffle-side-1.png') }}"
+        alt="Luxury Leather Trolley Duffel">
 
-        <p>
-            Handcrafted using premium full grain leather.<br>
-            Built Slowly. Crafted for Lifetime.
-        </p>
+</div>
 
-        <a href="/shop" class="hero-btn">
-            Explore Collection
-        </a>
+        <div class="hero-left">
 
-    </div>
+            <span class="hero-tag">
+                FORGE & HIDE
+            </span>
 
-    <div class="hero-right">
+            <h1>
+                Luxury Leather<br>
+                Duffels with Trolley Wheels
+            </h1>
 
-        <img
-        src="{{ url_for('static', filename='uploads/green-duffle-side-1.png') }}"
-        alt="Luxury Leather Duffel">
+            <p>
+
+                Premium leather trolley duffels designed for effortless travel,
+                timeless craftsmanship and unmatched durability.
+
+            </p>
+
+            <a href="/shop">
+
+                <button class="hero-button">
+
+                    View Trolley Collection
+
+                </button>
+
+            </a>
+
+        </div>
 
     </div>
 

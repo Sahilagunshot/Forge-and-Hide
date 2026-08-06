@@ -1,32 +1,51 @@
 console.log("Forge & Hide JS Loaded");
-console.log("Forge & Hide JS Loaded");
 
-const slides = document.querySelectorAll(".slide");
+const heroImage1 = document.getElementById("heroImage1");
+const heroImage2 = document.getElementById("heroImage2");
 
-let currentSlide = 0;
+const greenImages = [
+    "/static/uploads/green-duffle-side-1.jpg",
+    "/static/uploads/green-duffle-side-2.png"
+];
 
-function showSlide(index){
+const tanImages = [
+    "/static/uploads/tan-duffle-side-1.png",
+    "/static/uploads/tan-duffle-side-2.png"
+];
 
-    slides.forEach((slide)=>{
+let greenIndex = 0;
+let tanIndex = 0;
 
-        slide.classList.remove("active");
+setInterval(() => {
 
-    });
+    greenIndex++;
 
-    slides[index].classList.add("active");
-
-}
-
-setInterval(()=>{
-
-    currentSlide++;
-
-    if(currentSlide >= slides.length){
-
-        currentSlide = 0;
-
+    if (greenIndex >= greenImages.length) {
+        greenIndex = 0;
     }
 
-    showSlide(currentSlide);
+    heroImage1.style.opacity = "0";
 
-},5000);
+    setTimeout(() => {
+        heroImage1.src = greenImages[greenIndex];
+        heroImage1.style.opacity = "1";
+    }, 400);
+
+}, 5000);
+
+setInterval(() => {
+
+    tanIndex++;
+
+    if (tanIndex >= tanImages.length) {
+        tanIndex = 0;
+    }
+
+    heroImage2.style.opacity = "0";
+
+    setTimeout(() => {
+        heroImage2.src = tanImages[tanIndex];
+        heroImage2.style.opacity = "1";
+    }, 400);
+
+}, 5000);
