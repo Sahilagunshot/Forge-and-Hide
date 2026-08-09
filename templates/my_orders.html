@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}
+My Orders | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<h1 class="section-title">
+    My Orders
+</h1>
+
+{% if orders %}
+
+<div style="margin-top:40px;">
+
+{% for order in orders %}
+
+<div style="
+    background:#1a1a1a;
+    padding:25px;
+    margin-bottom:20px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>
+        Order #{{ order.id }}
+    </h2>
+
+    <p>
+        <strong>Order Date:</strong>
+        {{ order.created_at }}
+    </p>
+
+    <p>
+        <strong>Total:</strong>
+        ₹ {{ order.total_amount }}
+    </p>
+
+    <p>
+        <strong>Order Status:</strong>
+        {{ order.status }}
+    </p>
+
+    <p>
+        <strong>Payment Status:</strong>
+        {{ order.payment_status }}
+    </p>
+
+    <a href="{{ url_for('order_details', order_id=order.id) }}">
+    <button class="hero-button">
+        View Order
+    </button>
+    </a>
+
+</div>
+
+{% endfor %}
+
+</div>
+
+{% else %}
+
+<h2>
+    You have no orders yet.
+</h2>
+
+{% endif %}
+
+{% endblock %}

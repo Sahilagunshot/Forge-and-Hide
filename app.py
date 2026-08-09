@@ -18,8 +18,12 @@ from models import (
     Product,
     ProductImage,
     Admin,
-    Customer
+    Customer,
+    Cart,
+    Order,
+    OrderItem
 )
+
 
 app = Flask(__name__)
 app.config.from_object(Config)
@@ -31,6 +35,24 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.login_view = "admin_login"
 login_manager.init_app(app)
+
+@app.context_processor
+def inject_cart_count():
+
+    cart_count = 0
+
+    if current_user.is_authenticated:
+
+        cart_items = Cart.query.filter_by(
+            customer_id=current_user.id
+        ).all()
+
+        for item in cart_items:
+            cart_count += item.quantity
+
+    return {
+        "cart_count": cart_count
+    }
 
 
 @login_manager.user_loader
@@ -56,17 +78,37 @@ def home():
     customer_name=session.get("customer_name")
 )
 
-
 @app.route("/shop")
 def shop():
+    category_slug = request.args.get("category")
 
-    products = Product.query.order_by(
-        Product.id.desc()
+    categories = Category.query.order_by(
+        Category.id.asc()
     ).all()
+
+    if category_slug:
+        category = Category.query.filter_by(
+            slug=category_slug
+        ).first()
+
+        if category:
+            products = Product.query.filter_by(
+                category_id=category.id
+            ).order_by(
+                Product.id.desc()
+            ).all()
+        else:
+            products = []
+    else:
+        products = Product.query.order_by(
+            Product.id.desc()
+        ).all()
 
     return render_template(
         "shop.html",
-        products=products
+        products=products,
+        categories=categories,
+        selected_category=category_slug
     )
 
 @app.route("/register", methods=["GET", "POST"])
@@ -164,6 +206,405 @@ def product_detail(slug):
         product=product
     )
 
+@app.route("/add-to-cart/<int:product_id>")
+@login_required
+def add_to_cart(product_id):
+
+    product = Product.query.get_or_404(product_id)
+
+    # =========================
+    # CHECK PRODUCT STOCK
+    # =========================
+
+    if product.stock <= 0:
+
+        flash("This product is out of stock.")
+
+        return redirect(
+            url_for(
+                "product_detail",
+                slug=product.slug
+            )
+        )
+
+
+    # =========================
+    # FIND EXISTING CART ITEM
+    # =========================
+
+    existing = Cart.query.filter_by(
+        customer_id=current_user.id,
+        product_id=product_id
+    ).first()
+
+
+    # =========================
+    # CHECK CART QUANTITY
+    # =========================
+
+    if existing:
+
+        if existing.quantity >= product.stock:
+
+            flash(
+                f"Only {product.stock} item(s) available in stock."
+            )
+
+            return redirect(
+                url_for(
+                    "product_detail",
+                    slug=product.slug
+                )
+            )
+
+        existing.quantity += 1
+
+
+    else:
+
+        cart = Cart(
+            customer_id=current_user.id,
+            product_id=product_id,
+            quantity=1
+        )
+
+        db.session.add(cart)
+
+
+    db.session.commit()
+
+    flash("Product Added To Cart")
+
+    return redirect(url_for("cart"))
+
+
+@app.route("/cart")
+@login_required
+def cart():
+
+    cart_items = Cart.query.filter_by(
+        customer_id=current_user.id
+    ).all()
+    print("CURRENT USER IN CART:", current_user.id)
+    print("CART ITEMS LOADED:", cart_items)
+
+    total = 0
+
+    for item in cart_items:
+        total += item.product.price * item.quantity
+
+    return render_template(
+        "cart.html",
+        cart_items=cart_items,
+        total=total
+    )
+
+@app.route("/checkout", methods=["GET", "POST"])
+@login_required
+def checkout():
+
+    cart_items = Cart.query.filter_by(
+        customer_id=current_user.id
+    ).all()
+
+    if not cart_items:
+        flash("Your cart is empty")
+        return redirect(url_for("cart"))
+
+    # =========================
+    # CHECK STOCK BEFORE CHECKOUT
+    # =========================
+
+    for item in cart_items:
+
+        product = item.product
+
+        if item.quantity > product.stock:
+
+            flash(
+                f"Only {product.stock} item(s) of "
+                f"{product.name} are available in stock."
+            )
+
+            return redirect(url_for("cart"))
+
+    # =========================
+    # CALCULATE TOTAL
+    # =========================
+
+    total = 0
+
+    for item in cart_items:
+        total += item.product.price * item.quantity
+
+    # =========================
+    # PROCESS ORDER ONLY ON POST
+    # =========================
+
+    if request.method == "POST":
+
+        # =========================
+        # FINAL STOCK CHECK
+        # =========================
+
+        for item in cart_items:
+
+            product = item.product
+
+            if product.stock < item.quantity:
+
+                flash(
+                    f"Not enough stock for {product.name}. "
+                    f"Only {product.stock} item(s) available."
+                )
+
+                return redirect(url_for("cart"))
+
+        # =========================
+        # SHIPPING DETAILS
+        # =========================
+
+        shipping_name = request.form.get("shipping_name")
+        shipping_phone = request.form.get("shipping_phone")
+        shipping_address = request.form.get("shipping_address")
+        city = request.form.get("city")
+        state = request.form.get("state")
+        pincode = request.form.get("pincode")
+
+        # =========================
+        # CREATE ORDER
+        # =========================
+
+        order = Order(
+            customer_id=current_user.id,
+            total_amount=total,
+            status="Pending",
+            payment_status="Pending",
+            shipping_name=shipping_name,
+            shipping_phone=shipping_phone,
+            shipping_address=shipping_address,
+            city=city,
+            state=state,
+            pincode=pincode
+        )
+
+        db.session.add(order)
+
+        db.session.flush()
+
+        # =========================
+        # CREATE ORDER ITEMS
+        # + REDUCE STOCK
+        # =========================
+
+        for item in cart_items:
+
+            order_item = OrderItem(
+                order_id=order.id,
+                product_id=item.product_id,
+                quantity=item.quantity,
+                price=item.product.price
+            )
+
+            db.session.add(order_item)
+
+            item.product.stock -= item.quantity
+
+        # =========================
+        # CLEAR CART
+        # =========================
+
+        for item in cart_items:
+
+            db.session.delete(item)
+
+        # =========================
+        # SAVE ORDER
+        # =========================
+
+        db.session.commit()
+
+        flash("Order Placed Successfully")
+
+        return redirect(
+            url_for(
+                "order_confirmation",
+                order_id=order.id
+            )
+        )
+
+    # =========================
+    # SHOW CHECKOUT PAGE
+    # =========================
+
+    return render_template(
+        "checkout.html",
+        cart_items=cart_items,
+        total=total
+    )
+
+@app.route("/order-confirmation/<int:order_id>")
+@login_required
+def order_confirmation(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    if order.customer_id != current_user.id:
+        return redirect(url_for("shop"))
+
+    return render_template(
+        "order_confirmation.html",
+        order=order
+    )
+
+@app.route("/my-orders")
+@login_required
+def my_orders():
+
+    orders = Order.query.filter_by(
+        customer_id=current_user.id
+    ).order_by(
+        Order.created_at.desc()
+    ).all()
+
+    return render_template(
+        "my_orders.html",
+        orders=orders
+    )
+
+@app.route("/my-orders/<int:order_id>")
+@login_required
+def order_details(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    if order.customer_id != current_user.id:
+        return redirect(url_for("my_orders"))
+
+    return render_template(
+        "order_details.html",
+        order=order
+    )
+
+@app.route("/admin/orders/<int:order_id>")
+@login_required
+def admin_order_details(order_id):
+
+    # Only Admin can access this page
+    if not isinstance(current_user, Admin):
+        return redirect(url_for("home"))
+
+    order = Order.query.get_or_404(order_id)
+
+    return render_template(
+        "admin_order_details.html",
+        order=order
+    )
+
+@app.after_request
+def add_no_cache_headers(response):
+
+    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+
+    return response
+
+
+@app.route(
+    "/admin/orders/<int:order_id>/update",
+    methods=["POST"]
+)
+@login_required
+def admin_update_order(order_id):
+
+    # Only Admin can update orders
+    if not isinstance(current_user, Admin):
+        return redirect(url_for("home"))
+
+    order = Order.query.get_or_404(order_id)
+
+    status = request.form.get("status")
+    payment_status = request.form.get("payment_status")
+
+    allowed_statuses = [
+        "Pending",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    ]
+
+    allowed_payment_statuses = [
+        "Pending",
+        "Paid",
+        "Failed"
+    ]
+
+    if status in allowed_statuses:
+        order.status = status
+
+    if payment_status in allowed_payment_statuses:
+        order.payment_status = payment_status
+
+    db.session.commit()
+
+    flash("Order Updated Successfully")
+
+    return redirect(
+        url_for(
+            "admin_order_details",
+            order_id=order.id
+        )
+    )
+
+@app.route("/cart/increase/<int:id>")
+@login_required
+def increase_quantity(id):
+
+    item = Cart.query.get_or_404(id)
+
+    if item.customer_id != current_user.id:
+        return redirect(url_for("cart"))
+
+    item.quantity += 1
+
+    db.session.commit()
+
+    return redirect(url_for("cart"))
+
+@app.route("/cart/decrease/<int:id>")
+@login_required
+def decrease_quantity(id):
+
+    item = Cart.query.get_or_404(id)
+
+    if item.customer_id != current_user.id:
+        return redirect(url_for("cart"))
+
+    if item.quantity > 1:
+        item.quantity -= 1
+        db.session.commit()
+
+    return redirect(url_for("cart"))
+
+@app.route("/cart/remove/<int:id>")
+@login_required
+def remove_cart_item(id):
+
+    item = Cart.query.get_or_404(id)
+
+    if item.customer_id != current_user.id:
+        return redirect(url_for("cart"))
+
+    db.session.delete(item)
+
+    db.session.commit()
+
+    flash("Item Removed")
+
+    return redirect(url_for("cart"))
+
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
@@ -194,6 +635,22 @@ def admin_login():
 def admin_dashboard():
     return render_template("admin/dashboard.html")
 
+@app.route("/admin/orders")
+@login_required
+def admin_orders():
+
+    if not isinstance(current_user, Admin):
+        return redirect(url_for("home"))
+
+    orders = Order.query.order_by(
+        Order.created_at.desc()
+    ).all()
+
+    return render_template(
+        "admin_orders.html",
+        orders=orders
+    )
+
 
 @app.route("/logout")
 @login_required
@@ -217,6 +674,16 @@ def add_product():
         price = float(request.form.get("price"))
         stock = int(request.form.get("stock"))
         category_id = request.form.get("category")
+        short_description = request.form.get("short_description")
+        long_description = request.form.get("long_description")
+        leather_type = request.form.get("leather_type")
+        hardware = request.form.get("hardware")
+        lining = request.form.get("lining")
+        dimensions = request.form.get("dimensions")
+        weight = request.form.get("weight")
+        made_in = request.form.get("made_in")
+        warranty = request.form.get("warranty")
+        care = request.form.get("care")
 
         image = request.files.get("image")
 
@@ -236,11 +703,22 @@ def add_product():
             name=name,
             slug=name.lower().replace(" ", "-"),
             description=description,
+            short_description=short_description,
+            long_description=long_description,
+            leather_type=leather_type,
+            hardware=hardware,
+            lining=lining,
+            dimensions=dimensions,
+            weight=weight,
+            made_in=made_in,
+            warranty=warranty,
+            care=care,
+            is_bestseller=True if request.form.get("is_bestseller") else False,
             price=price,
             stock=stock,
             image=filename,
             category_id=category_id if category_id else None
-        )
+    )
 
         db.session.add(product)
         db.session.commit()
@@ -267,6 +745,7 @@ def products():
     )
 
 
+
 @app.route("/admin/products/edit/<int:id>", methods=["GET", "POST"])
 @login_required
 def edit_product(id):
@@ -281,6 +760,17 @@ def edit_product(id):
         product.description = request.form.get("description")
         product.price = float(request.form.get("price"))
         product.stock = int(request.form.get("stock"))
+        product.short_description = request.form.get("short_description")
+        product.long_description = request.form.get("long_description")
+        product.leather_type = request.form.get("leather_type")
+        product.hardware = request.form.get("hardware")
+        product.lining = request.form.get("lining")
+        product.dimensions = request.form.get("dimensions")
+        product.weight = request.form.get("weight")
+        product.made_in = request.form.get("made_in")
+        product.warranty = request.form.get("warranty")
+        product.care = request.form.get("care")
+        product.is_bestseller = True if request.form.get("is_bestseller") else False
 
         category = request.form.get("category")
         image = request.files.get("image")

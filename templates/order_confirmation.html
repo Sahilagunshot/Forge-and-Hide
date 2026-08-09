@@ -1,0 +1,104 @@
+{% extends "base.html" %}
+
+{% block title %}
+Order Confirmed | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div style="
+    max-width:900px;
+    margin:60px auto;
+    padding:40px;
+    text-align:center;
+">
+
+    <div style="
+        background:#181818;
+        padding:45px;
+        border-radius:12px;
+    ">
+
+        <div style="
+            font-size:60px;
+            margin-bottom:20px;
+        ">
+            ✓
+        </div>
+
+        <h1 style="
+            color:#d4af37;
+            margin-bottom:15px;
+        ">
+            Order Confirmed
+        </h1>
+
+        <p style="
+            font-size:18px;
+            color:#ccc;
+        ">
+            Thank you for your order.
+        </p>
+
+        <p style="
+            color:#aaa;
+            margin-top:20px;
+        ">
+            Your order has been successfully placed.
+        </p>
+
+
+        <div style="
+            margin:30px auto;
+            padding:20px;
+            max-width:500px;
+            background:#111;
+            border-radius:8px;
+        ">
+
+            <p>
+                <strong>Order ID:</strong>
+                #{{ order.id }}
+            </p>
+
+            <p>
+                <strong>Order Total:</strong>
+                ₹ {{ order.total_amount }}
+            </p>
+
+            <p>
+                <strong>Order Status:</strong>
+                {{ order.status }}
+            </p>
+
+            <p>
+                <strong>Payment Status:</strong>
+                {{ order.payment_status }}
+            </p>
+
+        </div>
+
+
+        <a href="{{ url_for('home') }}">
+
+            <button style="
+                background:#d4af37;
+                color:#111;
+                border:none;
+                padding:14px 28px;
+                font-size:16px;
+                font-weight:bold;
+                border-radius:5px;
+                cursor:pointer;
+                margin-top:20px;
+            ">
+                Continue Shopping
+            </button>
+
+        </a>
+
+    </div>
+
+</div>
+
+{% endblock %}

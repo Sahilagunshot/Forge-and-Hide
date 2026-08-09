@@ -62,6 +62,28 @@ class Product(db.Model):
 
     description = db.Column(db.Text)
 
+    short_description = db.Column(db.String(500))
+
+    long_description = db.Column(db.Text)
+
+    leather_type = db.Column(db.String(150))
+
+    hardware = db.Column(db.String(150))
+
+    lining = db.Column(db.String(150))
+
+    dimensions = db.Column(db.String(150))
+
+    weight = db.Column(db.String(100))
+
+    made_in = db.Column(db.String(100))
+
+    warranty = db.Column(db.String(100))
+
+    care = db.Column(db.Text)
+
+    is_bestseller = db.Column(db.Boolean, default=False)
+
     price = db.Column(db.Float, nullable=False)
 
     stock = db.Column(db.Integer, default=0)
@@ -77,6 +99,161 @@ class Product(db.Model):
 
     def __repr__(self):
         return f"<Product {self.name}>"
+
+class Cart(db.Model):
+    __tablename__ = "cart"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    customer_id = db.Column(
+        db.Integer,
+        db.ForeignKey("customers.id"),
+        nullable=False
+    )
+
+    product_id = db.Column(
+        db.Integer,
+        db.ForeignKey("products.id"),
+        nullable=False
+    )
+
+    quantity = db.Column(
+        db.Integer,
+        default=1
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=func.now()
+    )
+
+    customer = db.relationship("Customer")
+
+    product = db.relationship("Product")
+
+
+class Order(db.Model):
+    __tablename__ = "orders"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    customer_id = db.Column(
+        db.Integer,
+        db.ForeignKey("customers.id"),
+        nullable=False
+    )
+
+    total_amount = db.Column(
+        db.Float,
+        nullable=False,
+        default=0
+    )
+
+    status = db.Column(
+        db.String(50),
+        default="Pending"
+    )
+
+    payment_status = db.Column(
+        db.String(50),
+        default="Pending"
+    )
+
+    shipping_name = db.Column(
+        db.String(200),
+        nullable=False
+    )
+
+    shipping_phone = db.Column(
+        db.String(30),
+        nullable=False
+    )
+
+    shipping_address = db.Column(
+        db.Text,
+        nullable=False
+    )
+
+    city = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    state = db.Column(
+        db.String(100),
+        nullable=False
+    )
+
+    pincode = db.Column(
+        db.String(20),
+        nullable=False
+    )
+
+    created_at = db.Column(
+        db.DateTime,
+        server_default=func.now()
+    )
+
+    customer = db.relationship(
+        "Customer",
+        backref="orders"
+    )
+
+    items = db.relationship(
+        "OrderItem",
+        back_populates="order",
+        cascade="all, delete-orphan"
+    )
+
+    def __repr__(self):
+        return f"<Order {self.id}>"
+
+class OrderItem(db.Model):
+    __tablename__ = "order_items"
+
+    id = db.Column(
+        db.Integer,
+        primary_key=True
+    )
+
+    order_id = db.Column(
+        db.Integer,
+        db.ForeignKey("orders.id"),
+        nullable=False
+    )
+
+    product_id = db.Column(
+        db.Integer,
+        db.ForeignKey("products.id"),
+        nullable=False
+    )
+
+    quantity = db.Column(
+        db.Integer,
+        nullable=False,
+        default=1
+    )
+
+    price = db.Column(
+        db.Float,
+        nullable=False
+    )
+
+    order = db.relationship(
+        "Order",
+        back_populates="items"
+    )
+
+    product = db.relationship(
+        "Product"
+    )
+
+    def __repr__(self):
+        return f"<OrderItem {self.id}>"
+
 
 class Customer(UserMixin, db.Model):
     __tablename__ = "customers"

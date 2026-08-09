@@ -1,0 +1,202 @@
+{% extends "base.html" %}
+
+{% block title %}
+Checkout | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div style="max-width:1000px;margin:40px auto;padding:20px;">
+
+    <h1 class="section-title">
+        Checkout
+    </h1>
+
+    <div style="
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:40px;
+        margin-top:40px;
+    ">
+
+        <!-- SHIPPING DETAILS -->
+
+        <div style="
+            background:#181818;
+            padding:30px;
+            border-radius:10px;
+        ">
+
+            <h2 style="color:#d4af37;">
+                Shipping Details
+            </h2>
+
+            <form method="POST">
+
+                <label>Full Name</label>
+
+                <input
+                    type="text"
+                    name="shipping_name"
+                    required
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                >
+
+                <label>Phone Number</label>
+
+                <input
+                    type="text"
+                    name="shipping_phone"
+                    required
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                >
+
+                <label>Address</label>
+
+                <textarea
+                    name="shipping_address"
+                    required
+                    rows="4"
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                ></textarea>
+
+                <label>City</label>
+
+                <input
+                    type="text"
+                    name="city"
+                    required
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                >
+
+                <label>State</label>
+
+                <input
+                    type="text"
+                    name="state"
+                    required
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                >
+
+                <label>Pincode</label>
+
+                <input
+                    type="text"
+                    name="pincode"
+                    required
+                    style="width:100%;padding:12px;margin:10px 0 20px;"
+                >
+
+                <button
+                    type="submit"
+                    style="
+                        width:100%;
+                        background:#d4af37;
+                        color:#111;
+                        border:none;
+                        padding:15px;
+                        font-size:17px;
+                        font-weight:bold;
+                        cursor:pointer;
+                        border-radius:5px;
+                    "
+                >
+                    Place Order
+                </button>
+
+            </form>
+
+        </div>
+
+
+        <!-- ORDER SUMMARY -->
+
+        <div style="
+            background:#181818;
+            padding:30px;
+            border-radius:10px;
+            height:max-content;
+        ">
+
+            <h2 style="color:#d4af37;">
+                Order Summary
+            </h2>
+
+            {% for item in cart_items %}
+
+            <div style="
+                display:flex;
+                align-items:center;
+                gap:15px;
+                padding:15px 0;
+                border-bottom:1px solid #333;
+            ">
+
+                {% if item.product.image %}
+
+                <img
+                    src="{{ url_for(
+                        'static',
+                        filename='uploads/' + item.product.image
+                    ) }}"
+                    style="
+                        width:80px;
+                        height:80px;
+                        object-fit:cover;
+                        border-radius:6px;
+                    "
+                >
+
+                {% endif %}
+
+                <div style="flex:1;">
+
+                    <strong>
+                        {{ item.product.name }}
+                    </strong>
+
+                    <p style="margin:6px 0;color:#aaa;">
+
+                        Qty: {{ item.quantity }}
+
+                    </p>
+
+                </div>
+
+                <strong>
+
+                    ₹ {{ item.product.price * item.quantity }}
+
+                </strong>
+
+            </div>
+
+            {% endfor %}
+
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                margin-top:30px;
+                font-size:20px;
+            ">
+
+                <strong>
+                    Grand Total
+                </strong>
+
+                <strong style="color:#d4af37;">
+
+                    ₹ {{ total }}
+
+                </strong>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
+{% endblock %}

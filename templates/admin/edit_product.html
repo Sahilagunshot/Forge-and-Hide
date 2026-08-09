@@ -70,6 +70,87 @@ required>
 name="description"
 rows="5">{{ product.description }}</textarea>
 
+<label>Short Description</label>
+
+<input
+type="text"
+name="short_description"
+value="{{ product.short_description or '' }}">
+
+<label>Long Description</label>
+
+<textarea
+name="long_description"
+rows="8">{{ product.long_description or '' }}</textarea>
+
+<label>Leather Type</label>
+
+<input
+type="text"
+name="leather_type"
+value="{{ product.leather_type or '' }}">
+
+<label>Hardware</label>
+
+<input
+type="text"
+name="hardware"
+value="{{ product.hardware or '' }}">
+
+<label>Lining</label>
+
+<input
+type="text"
+name="lining"
+value="{{ product.lining or '' }}">
+
+<label>Dimensions</label>
+
+<input
+type="text"
+name="dimensions"
+value="{{ product.dimensions or '' }}">
+
+<label>Weight</label>
+
+<input
+type="text"
+name="weight"
+value="{{ product.weight or '' }}">
+
+<label>Made In</label>
+
+<input
+type="text"
+name="made_in"
+value="{{ product.made_in or '' }}">
+
+<label>Warranty</label>
+
+<input
+type="text"
+name="warranty"
+value="{{ product.warranty or '' }}">
+
+<label>Care Instructions</label>
+
+<textarea
+name="care"
+rows="5">{{ product.care or '' }}</textarea>
+
+<label>
+
+<input
+type="checkbox"
+name="is_bestseller"
+{% if product.is_bestseller %}checked{% endif %}>
+
+ Bestseller Product
+
+</label>
+
+<br><br>
+
 
 <label>Price</label>
 

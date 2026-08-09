@@ -22,16 +22,129 @@
 
     <div class="product-content">
 
-        <h1>{{ product.name }}</h1>
+        {% if product.is_bestseller %}
+<div class="bestseller-badge">
 
-        <h2>₹ {{ product.price }}</h2>
+★ Bestseller
 
-        <p>
+</div>
+{% endif %}
 
-            {{ product.description }}
+<h1>{{ product.name }}</h1>
 
-        </p>
+<p class="short-description">
 
+{{ product.short_description }}
+
+</p>
+
+<h2>
+
+₹ {{ product.price }}
+
+</h2>
+
+<ul class="product-specs">
+
+<li><strong>Leather :</strong> {{ product.leather_type }}</li>
+
+<li><strong>Hardware :</strong> {{ product.hardware }}</li>
+
+<li><strong>Lining :</strong> {{ product.lining }}</li>
+
+<li><strong>Dimensions :</strong> {{ product.dimensions }}</li>
+
+<li><strong>Weight :</strong> {{ product.weight }}</li>
+
+<li><strong>Made In :</strong> {{ product.made_in }}</li>
+
+<li><strong>Warranty :</strong> {{ product.warranty }}</li>
+
+</ul>
+
+<div class="product-features">
+
+    <h3>Highlights</h3>
+
+<ul>
+
+```
+<li>✔ Premium Full Grain Leather</li>
+
+<li>✔ Premium YKK Hardware</li>
+
+<li>✔ Handcrafted in India</li>
+
+<li>✔ Built for Lifetime Use</li>
+
+<li>✔ Luxury Finish & Premium Stitching</li>
+```
+
+</ul>
+
+{% if product.long_description %}
+
+<h3>Product Description</h3>
+
+{{ product.long_description }}
+
+{% endif %}
+
+{% if product.care %}
+
+<h3>Care Instructions</h3>
+
+{{ product.care }}
+
+{% endif %}
+
+
+</div>
+
+<div class="product-specs">
+
+    <h3>Specifications</h3>
+
+    <table>
+
+<tr>
+<td>Leather</td>
+<td>{{ product.leather_type }}</td>
+</tr>
+
+<tr>
+<td>Hardware</td>
+<td>{{ product.hardware }}</td>
+</tr>
+
+<tr>
+<td>Lining</td>
+<td>{{ product.lining }}</td>
+</tr>
+
+<tr>
+<td>Dimensions</td>
+<td>{{ product.dimensions }}</td>
+</tr>
+
+<tr>
+<td>Weight</td>
+<td>{{ product.weight }}</td>
+</tr>
+
+<tr>
+<td>Made In</td>
+<td>{{ product.made_in }}</td>
+</tr>
+
+<tr>
+<td>Warranty</td>
+<td>{{ product.warranty }}</td>
+</tr>
+
+</table>
+
+</div>
         <p>
 
             <strong>Stock :</strong>
@@ -42,11 +155,58 @@
 
         <br>
 
-        <button class="hero-button">
+        <a href="{{ url_for('add_to_cart', product_id=product.id) }}">
+    {% if product.stock > 0 %}
 
-            Add To Cart
+<p style="
+    margin-top:15px;
+    color:#aaa;
+">
+    {% if product.stock <= 5 %}
+        Only {{ product.stock }} left in stock
+    {% else %}
+        In Stock
+    {% endif %}
+</p>
 
-        </button>
+{% else %}
+
+<p style="
+    margin-top:15px;
+    color:#dc2626;
+    font-weight:bold;
+">
+    Out of Stock
+</p>
+
+{% endif %}
+
+{% if product.stock > 0 %}
+
+<button
+    type="submit"
+    class="hero-button"
+>
+    Add To Cart
+</button>
+
+{% else %}
+
+<button
+    type="button"
+    class="hero-button"
+    disabled
+    style="
+        opacity:0.5;
+        cursor:not-allowed;
+    "
+>
+    Out of Stock
+</button>
+
+{% endif %}
+
+</a>
 
     </div>
 

@@ -12,6 +12,25 @@ Shop | Forge & Hide
 
 </h1>
 
+<div class="shop-categories">
+
+```
+<a href="{{ url_for('shop') }}">
+    All
+</a>
+
+{% for category in categories %}
+
+    <a href="{{ url_for('shop', category=category.slug) }}">
+        {{ category.name }}
+    </a>
+
+{% endfor %}
+```
+
+</div>
+
+
 <div class="product-grid">
 
 {% for product in products %}

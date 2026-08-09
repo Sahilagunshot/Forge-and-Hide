@@ -1,0 +1,165 @@
+{% extends "base.html" %}
+
+{% block title %}
+Admin Orders | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<h1 class="section-title">
+    All Orders
+</h1>
+
+
+{% if orders %}
+
+<div style="
+    overflow-x:auto;
+    margin-top:30px;
+">
+
+<table style="
+    width:100%;
+    border-collapse:collapse;
+    background:#1a1a1a;
+    border:1px solid #333;
+">
+
+    <thead>
+
+        <tr style="
+            border-bottom:1px solid #444;
+        ">
+
+            <th style="padding:15px;">
+                Order
+            </th>
+
+            <th style="padding:15px;">
+                Customer
+            </th>
+
+            <th style="padding:15px;">
+                Total
+            </th>
+
+            <th style="padding:15px;">
+                Order Status
+            </th>
+
+            <th style="padding:15px;">
+                Payment
+            </th>
+
+            <th style="padding:15px;">
+                Date
+            </th>
+
+            <th style="padding:15px;">
+                Action
+            </th>
+
+        </tr>
+
+    </thead>
+
+
+    <tbody>
+
+        {% for order in orders %}
+
+        <tr style="
+            border-bottom:1px solid #333;
+        ">
+
+            <td style="padding:15px;">
+                #{{ order.id }}
+            </td>
+
+
+            <td style="padding:15px;">
+
+                {{ order.shipping_name }}
+
+                <br>
+
+                {{ order.shipping_phone }}
+
+            </td>
+
+
+            <td style="padding:15px;">
+                ₹ {{ order.total_amount }}
+            </td>
+
+
+            <td style="padding:15px;">
+                {{ order.status }}
+            </td>
+
+
+            <td style="padding:15px;">
+                {{ order.payment_status }}
+            </td>
+
+
+            <td style="padding:15px;">
+                {{ order.created_at }}
+            </td>
+
+
+            <td style="padding:15px;">
+
+                <a
+                    href="{{ url_for(
+                        'admin_order_details',
+                        order_id=order.id
+                    ) }}"
+                    style="text-decoration:none;"
+                >
+
+                    <button
+                        type="button"
+                        class="hero-button"
+                    >
+                        View Order
+                    </button>
+
+                </a>
+
+            </td>
+
+        </tr>
+
+        {% endfor %}
+
+    </tbody>
+
+</table>
+
+</div>
+
+
+{% else %}
+
+<div style="
+    background:#1a1a1a;
+    padding:30px;
+    margin-top:30px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>
+        No Orders Found
+    </h2>
+
+    <p>
+        There are currently no customer orders.
+    </p>
+
+</div>
+
+{% endif %}
+
+{% endblock %}

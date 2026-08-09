@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+
+{% block title %}
+Order #{{ order.id }} | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<h1 class="section-title">
+    Order #{{ order.id }}
+</h1>
+
+<div style="
+    margin-top:40px;
+    background:#1a1a1a;
+    padding:30px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>Order Information</h2>
+
+    <p>
+        <strong>Order Date:</strong>
+        {{ order.created_at }}
+    </p>
+
+    <p>
+        <strong>Order Status:</strong>
+        {{ order.status }}
+    </p>
+
+    <p>
+        <strong>Payment Status:</strong>
+        {{ order.payment_status }}
+    </p>
+
+</div>
+
+
+<div style="
+    margin-top:30px;
+    background:#1a1a1a;
+    padding:30px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>Products</h2>
+
+    {% for item in order.items %}
+
+    <div style="
+        display:flex;
+        align-items:center;
+        gap:25px;
+        padding:20px 0;
+        border-bottom:1px solid #333;
+    ">
+
+        {% if item.product.image %}
+
+        <img
+            src="{{ url_for(
+                'static',
+                filename='uploads/' + item.product.image
+            ) }}"
+            width="120"
+            style="border-radius:8px;"
+        >
+
+        {% endif %}
+
+        <div>
+
+            <h3>
+                {{ item.product.name }}
+            </h3>
+
+            <p>
+                Quantity:
+                {{ item.quantity }}
+            </p>
+
+            <p>
+                Price:
+                ₹ {{ item.price }}
+            </p>
+
+            <p>
+                Item Total:
+                ₹ {{ item.price * item.quantity }}
+            </p>
+
+        </div>
+
+    </div>
+
+    {% endfor %}
+
+    <h2 style="margin-top:30px;">
+        Grand Total:
+        ₹ {{ order.total_amount }}
+    </h2>
+
+</div>
+
+
+<div style="
+    margin-top:30px;
+    background:#1a1a1a;
+    padding:30px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>Shipping Information</h2>
+
+    <p>
+        <strong>Name:</strong>
+        {{ order.shipping_name }}
+    </p>
+
+    <p>
+        <strong>Phone:</strong>
+        {{ order.shipping_phone }}
+    </p>
+
+    <p>
+        <strong>Address:</strong>
+        {{ order.shipping_address }}
+    </p>
+
+    <p>
+        <strong>City:</strong>
+        {{ order.city }}
+    </p>
+
+    <p>
+        <strong>State:</strong>
+        {{ order.state }}
+    </p>
+
+    <p>
+        <strong>Pincode:</strong>
+        {{ order.pincode }}
+    </p>
+
+</div>
+
+
+<div style="margin-top:30px;">
+
+    <a href="{{ url_for('my_orders') }}">
+        <button class="hero-button">
+            ← Back to My Orders
+        </button>
+    </a>
+
+</div>
+
+{% endblock %}
