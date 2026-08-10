@@ -162,6 +162,12 @@ class Order(db.Model):
         default="Pending"
     )
 
+    stock_restored = db.Column(
+    db.Boolean,
+    default=False,
+    nullable=True
+    )
+
     shipping_name = db.Column(
         db.String(200),
         nullable=False

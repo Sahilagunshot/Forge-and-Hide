@@ -35,6 +35,32 @@ migrate = Migrate(app, db)
 login_manager = LoginManager()
 login_manager.login_view = "admin_login"
 login_manager.init_app(app)
+from functools import wraps
+
+
+from functools import wraps
+
+
+def admin_required(f):
+
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        print(
+    "ADMIN CHECK:",
+    current_user.is_authenticated,
+    type(current_user).__name__,
+    session.get("customer_id")
+)
+
+        if not current_user.is_authenticated:
+            return redirect(url_for("admin_login"))
+
+        if not isinstance(current_user, Admin):
+            return redirect(url_for("home"))
+
+        return f(*args, **kwargs)
+
+    return decorated_function
 
 @app.context_processor
 def inject_cart_count():
@@ -515,14 +541,13 @@ def add_no_cache_headers(response):
     "/admin/orders/<int:order_id>/update",
     methods=["POST"]
 )
-@login_required
+@admin_required
 def admin_update_order(order_id):
 
-    # Only Admin can update orders
-    if not isinstance(current_user, Admin):
-        return redirect(url_for("home"))
-
     order = Order.query.get_or_404(order_id)
+
+    old_status = order.status
+    old_payment_status = order.payment_status
 
     status = request.form.get("status")
     payment_status = request.form.get("payment_status")
@@ -541,11 +566,44 @@ def admin_update_order(order_id):
         "Failed"
     ]
 
+    # =========================
+    # UPDATE ORDER STATUS
+    # =========================
+
     if status in allowed_statuses:
         order.status = status
 
     if payment_status in allowed_payment_statuses:
         order.payment_status = payment_status
+
+    # =========================
+    # RESTORE STOCK
+    # =========================
+
+    restore_stock = (
+        (
+            status == "Cancelled"
+            and old_status != "Cancelled"
+        )
+        or
+        (
+            payment_status == "Failed"
+            and old_payment_status != "Failed"
+        )
+    )
+
+    if restore_stock and not order.stock_restored:
+
+        for item in order.items:
+
+            if item.product:
+                item.product.stock += item.quantity
+
+        order.stock_restored = True
+
+    # =========================
+    # SAVE
+    # =========================
 
     db.session.commit()
 
@@ -609,15 +667,14 @@ def remove_cart_item(id):
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
 
-    if current_user.is_authenticated:
-        return redirect(url_for("admin_dashboard"))
-
     if request.method == "POST":
 
         username = request.form.get("username")
         password = request.form.get("password")
 
-        admin = Admin.query.filter_by(username=username).first()
+        admin = Admin.query.filter_by(
+            username=username
+        ).first()
 
         if admin and admin.check_password(password):
 
@@ -629,10 +686,10 @@ def admin_login():
 
     return render_template("admin/login.html")
 
-
 @app.route("/admin/dashboard")
-@login_required
+@admin_required
 def admin_dashboard():
+
     return render_template("admin/dashboard.html")
 
 @app.route("/admin/orders")
@@ -734,7 +791,7 @@ def add_product():
 
 
 @app.route("/admin/products")
-@login_required
+@admin_required
 def products():
 
     products = Product.query.order_by(Product.id.desc()).all()
