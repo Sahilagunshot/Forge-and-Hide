@@ -83,7 +83,7 @@ def inject_cart_count():
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Admin.query.get(int(user_id))
+    return db.session.get(Admin, int(user_id))
 
 
 @app.route("/")
@@ -513,7 +513,7 @@ def order_details(order_id):
     )
 
 @app.route("/admin/orders/<int:order_id>")
-@login_required
+@admin_required
 def admin_order_details(order_id):
 
     # Only Admin can access this page
@@ -666,6 +666,9 @@ def remove_cart_item(id):
 
 @app.route("/admin/login", methods=["GET", "POST"])
 def admin_login():
+    if current_user.is_authenticated and isinstance(current_user, Admin):
+        return redirect(url_for("admin_dashboard"))
+
 
     if request.method == "POST":
 
@@ -690,10 +693,39 @@ def admin_login():
 @admin_required
 def admin_dashboard():
 
-    return render_template("admin/dashboard.html")
+    total_orders = Order.query.count()
+
+    pending_orders = Order.query.filter_by(
+        status="Pending"
+    ).count()
+
+    total_products = Product.query.count()
+
+    low_stock_products = Product.query.filter(
+        Product.stock <= 5
+    ).count()
+
+    total_categories = Category.query.count()
+
+    total_customers = Customer.query.count()
+
+    recent_orders = Order.query.order_by(
+        Order.created_at.desc()
+    ).limit(5).all()
+
+    return render_template(
+        "admin/dashboard.html",
+        total_orders=total_orders,
+        pending_orders=pending_orders,
+        total_products=total_products,
+        low_stock_products=low_stock_products,
+        total_categories=total_categories,
+        total_customers=total_customers,
+        recent_orders=recent_orders
+    )
 
 @app.route("/admin/orders")
-@login_required
+@admin_required
 def admin_orders():
 
     if not isinstance(current_user, Admin):
@@ -710,7 +742,7 @@ def admin_orders():
 
 
 @app.route("/logout")
-@login_required
+@admin_required
 def logout():
 
     logout_user()
@@ -719,7 +751,7 @@ def logout():
 
 
 @app.route("/admin/products/add", methods=["GET", "POST"])
-@login_required
+@admin_required
 def add_product():
 
     categories = Category.query.all()
@@ -804,7 +836,7 @@ def products():
 
 
 @app.route("/admin/products/edit/<int:id>", methods=["GET", "POST"])
-@login_required
+@admin_required
 def edit_product(id):
 
     product = Product.query.get_or_404(id)
@@ -862,7 +894,7 @@ def edit_product(id):
 
 
 @app.route("/admin/products/delete/<int:id>")
-@login_required
+@admin_required
 def delete_product(id):
 
     product = Product.query.get_or_404(id)
@@ -886,7 +918,7 @@ def delete_product(id):
 
 
 @app.route("/admin/products/<int:id>/gallery")
-@login_required
+@admin_required
 def product_gallery(id):
 
     product = Product.query.get_or_404(id)
@@ -903,7 +935,7 @@ def product_gallery(id):
 
 
 @app.route("/admin/categories")
-@login_required
+@admin_required
 def categories():
 
     categories = Category.query.order_by(Category.id.desc()).all()
@@ -915,7 +947,7 @@ def categories():
 
 
 @app.route("/admin/categories/add", methods=["GET", "POST"])
-@login_required
+@admin_required
 def add_category():
 
     if request.method == "POST":
@@ -937,7 +969,7 @@ def add_category():
     return render_template("admin/add_category.html")
 
 @app.route("/admin/categories/edit/<int:id>", methods=["GET", "POST"])
-@login_required
+@admin_required
 def edit_category(id):
 
     category = Category.query.get_or_404(id)
@@ -960,7 +992,7 @@ def edit_category(id):
 
 
 @app.route("/admin/categories/delete/<int:id>")
-@login_required
+@admin_required
 def delete_category(id):
 
     category = Category.query.get_or_404(id)
