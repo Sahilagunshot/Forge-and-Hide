@@ -635,7 +635,10 @@ def increase_quantity(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != session.get("customer_id"):
+    customer_id = session.get("customer_id")
+
+    # Make sure this cart item belongs to the logged-in customer
+    if item.customer_id != customer_id:
         return redirect(url_for("cart"))
 
     item.quantity += 1
@@ -644,13 +647,17 @@ def increase_quantity(id):
 
     return redirect(url_for("cart"))
 
+
 @app.route("/cart/decrease/<int:id>")
 @customer_required
 def decrease_quantity(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != session.get("customer_id"):
+    customer_id = session.get("customer_id")
+
+    # Make sure this cart item belongs to the logged-in customer
+    if item.customer_id != customer_id:
         return redirect(url_for("cart"))
 
     if item.quantity > 1:
@@ -659,13 +666,17 @@ def decrease_quantity(id):
 
     return redirect(url_for("cart"))
 
+
 @app.route("/cart/remove/<int:id>")
 @customer_required
 def remove_cart_item(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != session.get("customer_id"):
+    customer_id = session.get("customer_id")
+
+    # Make sure this cart item belongs to the logged-in customer
+    if item.customer_id != customer_id:
         return redirect(url_for("cart"))
 
     db.session.delete(item)
