@@ -62,6 +62,19 @@ def admin_required(f):
 
     return decorated_function
 
+from functools import wraps
+
+def customer_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+
+        if not session.get("customer_id"):
+            return redirect(url_for("login"))
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
 @app.context_processor
 def inject_cart_count():
 
@@ -233,7 +246,7 @@ def product_detail(slug):
     )
 
 @app.route("/add-to-cart/<int:product_id>")
-@login_required
+@customer_required
 def add_to_cart(product_id):
 
     product = Product.query.get_or_404(product_id)
@@ -259,9 +272,9 @@ def add_to_cart(product_id):
     # =========================
 
     existing = Cart.query.filter_by(
-        customer_id=current_user.id,
-        product_id=product_id
-    ).first()
+    customer_id=session.get("customer_id"),
+    product_id=product_id
+).first()
 
 
     # =========================
@@ -289,7 +302,7 @@ def add_to_cart(product_id):
     else:
 
         cart = Cart(
-            customer_id=current_user.id,
+            customer_id=session.get("customer_id"),
             product_id=product_id,
             quantity=1
         )
@@ -305,13 +318,13 @@ def add_to_cart(product_id):
 
 
 @app.route("/cart")
-@login_required
+@customer_required
 def cart():
 
     cart_items = Cart.query.filter_by(
-        customer_id=current_user.id
+        customer_id=session.get("customer_id")
     ).all()
-    print("CURRENT USER IN CART:", current_user.id)
+    print("CURRENT CUSTOMER IN CART:", session.get("customer_id"))
     print("CART ITEMS LOADED:", cart_items)
 
     total = 0
@@ -326,12 +339,12 @@ def cart():
     )
 
 @app.route("/checkout", methods=["GET", "POST"])
-@login_required
+@customer_required
 def checkout():
 
     cart_items = Cart.query.filter_by(
-        customer_id=current_user.id
-    ).all()
+    customer_id=session.get("customer_id")
+).all()
 
     if not cart_items:
         flash("Your cart is empty")
@@ -402,7 +415,7 @@ def checkout():
         # =========================
 
         order = Order(
-            customer_id=current_user.id,
+            customer_id=session.get("customer_id"),
             total_amount=total,
             status="Pending",
             payment_status="Pending",
@@ -470,12 +483,12 @@ def checkout():
     )
 
 @app.route("/order-confirmation/<int:order_id>")
-@login_required
+@customer_required
 def order_confirmation(order_id):
 
     order = Order.query.get_or_404(order_id)
 
-    if order.customer_id != current_user.id:
+    if order.customer_id != session.get("customer_id"):
         return redirect(url_for("shop"))
 
     return render_template(
@@ -484,11 +497,11 @@ def order_confirmation(order_id):
     )
 
 @app.route("/my-orders")
-@login_required
+@customer_required
 def my_orders():
 
     orders = Order.query.filter_by(
-        customer_id=current_user.id
+        customer_id=session.get("customer_id")
     ).order_by(
         Order.created_at.desc()
     ).all()
@@ -499,12 +512,12 @@ def my_orders():
     )
 
 @app.route("/my-orders/<int:order_id>")
-@login_required
+@customer_required
 def order_details(order_id):
 
     order = Order.query.get_or_404(order_id)
 
-    if order.customer_id != current_user.id:
+    if order.customer_id != session.get("customer_id"):
         return redirect(url_for("my_orders"))
 
     return render_template(
@@ -617,12 +630,12 @@ def admin_update_order(order_id):
     )
 
 @app.route("/cart/increase/<int:id>")
-@login_required
+@customer_required
 def increase_quantity(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != current_user.id:
+    if item.customer_id != session.get("customer_id"):
         return redirect(url_for("cart"))
 
     item.quantity += 1
@@ -632,12 +645,12 @@ def increase_quantity(id):
     return redirect(url_for("cart"))
 
 @app.route("/cart/decrease/<int:id>")
-@login_required
+@customer_required
 def decrease_quantity(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != current_user.id:
+    if item.customer_id != session.get("customer_id"):
         return redirect(url_for("cart"))
 
     if item.quantity > 1:
@@ -647,12 +660,12 @@ def decrease_quantity(id):
     return redirect(url_for("cart"))
 
 @app.route("/cart/remove/<int:id>")
-@login_required
+@customer_required
 def remove_cart_item(id):
 
     item = Cart.query.get_or_404(id)
 
-    if item.customer_id != current_user.id:
+    if item.customer_id != session.get("customer_id"):
         return redirect(url_for("cart"))
 
     db.session.delete(item)
