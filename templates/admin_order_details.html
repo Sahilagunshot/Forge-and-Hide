@@ -6,358 +6,408 @@ Order #{{ order.id }} | Admin | Forge & Hide
 
 {% block content %}
 
-<h1 class="section-title">
-    Order #{{ order.id }}
-</h1>
-
-
-<!-- =========================
-     ORDER INFORMATION
-========================= -->
-
 <div style="
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-    margin-top:30px;
+    max-width:1200px;
+    margin:50px auto;
+    padding:20px;
 ">
 
-    <h2>
-        Order Information
-    </h2>
-
-    <p>
-        <strong>Order ID:</strong>
-        #{{ order.id }}
-    </p>
-
-    <p>
-        <strong>Order Date:</strong>
-        {{ order.created_at }}
-    </p>
-
-    <p>
-        <strong>Order Status:</strong>
-        {{ order.status }}
-    </p>
-
-    <p>
-        <strong>Payment Status:</strong>
-        {{ order.payment_status }}
-    </p>
-
-    <p>
-        <strong>Total Amount:</strong>
-        ₹ {{ order.total_amount }}
-    </p>
-
-</div>
+    <h1 class="section-title">
+        Order #{{ order.id }}
+    </h1>
 
 
-<!-- =========================
-     CUSTOMER INFORMATION
-========================= -->
-
-<div style="
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-    margin-top:25px;
-">
-
-    <h2>
-        Customer Information
-    </h2>
-
-    <p>
-        <strong>Name:</strong>
-        {{ order.shipping_name }}
-    </p>
-
-    <p>
-        <strong>Phone:</strong>
-        {{ order.shipping_phone }}
-    </p>
-
-    <p>
-        <strong>Address:</strong>
-        {{ order.shipping_address }}
-    </p>
-
-    <p>
-        <strong>City:</strong>
-        {{ order.city }}
-    </p>
-
-    <p>
-        <strong>State:</strong>
-        {{ order.state }}
-    </p>
-
-    <p>
-        <strong>Pincode:</strong>
-        {{ order.pincode }}
-    </p>
-
-</div>
-
-
-<!-- =========================
-     ORDER ITEMS
-========================= -->
-
-<div style="
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-    margin-top:25px;
-">
-
-    <h2>
-        Ordered Products
-    </h2>
-
-    {% if order.items %}
-
-        {% for item in order.items %}
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                align-items:center;
-                padding:20px 0;
-                border-bottom:1px solid #333;
-            ">
-
-                <div>
-
-                    <h3>
-                        {{ item.product.name }}
-                    </h3>
-
-                    <p>
-                        Quantity:
-                        {{ item.quantity }}
-                    </p>
-
-                    <p>
-                        Price:
-                        ₹ {{ item.price }}
-                    </p>
-
-                </div>
-
-                <div>
-
-                    <strong>
-                        ₹ {{ item.price * item.quantity }}
-                    </strong>
-
-                </div>
-
-            </div>
-
-        {% endfor %}
-
-    {% else %}
-
-        <p>
-            No products found for this order.
-        </p>
-
-    {% endif %}
-
+    <!-- =========================
+         ORDER SUMMARY
+    ========================= -->
 
     <div style="
-        text-align:right;
+        background:#1a1a1a;
+        padding:30px;
+        border-radius:10px;
+        border:1px solid #333;
+        margin-top:30px;
+    ">
+
+        <h2>Order Summary</h2>
+
+        <p>
+            <strong>Order ID:</strong>
+            #{{ order.id }}
+        </p>
+
+        <p>
+            <strong>Order Date:</strong>
+            {{ order.created_at }}
+        </p>
+
+        <p>
+            <strong>Order Status:</strong>
+
+            <span style="
+                color:#d4af37;
+                font-weight:bold;
+            ">
+                {{ order.status }}
+            </span>
+        </p>
+
+        <p>
+            <strong>Payment Status:</strong>
+
+            <span style="
+                color:#d4af37;
+                font-weight:bold;
+            ">
+                {{ order.payment_status }}
+            </span>
+        </p>
+
+        <p>
+            <strong>Payment Method:</strong>
+
+            {% if order.payment_method == "COD" %}
+
+                Cash on Delivery
+
+            {% elif order.payment_method == "ONLINE" %}
+
+                Online Payment
+
+            {% else %}
+
+                {{ order.payment_method }}
+
+            {% endif %}
+
+        </p>
+
+        <p>
+            <strong>Grand Total:</strong>
+
+            <span style="
+                color:#d4af37;
+                font-size:20px;
+                font-weight:bold;
+            ">
+                ₹ {{ order.total_amount }}
+            </span>
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         CUSTOMER INFORMATION
+    ========================= -->
+
+    <div style="
+        background:#1a1a1a;
+        padding:30px;
+        border-radius:10px;
+        border:1px solid #333;
         margin-top:25px;
     ">
 
-        <h2>
-            Grand Total:
-            ₹ {{ order.total_amount }}
-        </h2>
+        <h2>Customer Information</h2>
+
+        <p>
+            <strong>Name:</strong>
+            {{ order.shipping_name }}
+        </p>
+
+        <p>
+            <strong>Phone:</strong>
+            {{ order.shipping_phone }}
+        </p>
+
+        <p>
+            <strong>Address:</strong>
+            {{ order.shipping_address }}
+        </p>
+
+        <p>
+            <strong>City:</strong>
+            {{ order.city }}
+        </p>
+
+        <p>
+            <strong>State:</strong>
+            {{ order.state }}
+        </p>
+
+        <p>
+            <strong>Pincode:</strong>
+            {{ order.pincode }}
+        </p>
+
+    </div>
+
+
+    <!-- =========================
+         ORDERED PRODUCTS
+    ========================= -->
+
+    <div style="
+        background:#1a1a1a;
+        padding:30px;
+        border-radius:10px;
+        border:1px solid #333;
+        margin-top:25px;
+    ">
+
+        <h2>Ordered Products</h2>
+
+        {% if order.items %}
+
+            {% for item in order.items %}
+
+                <div style="
+                    display:flex;
+                    justify-content:space-between;
+                    align-items:center;
+                    gap:25px;
+                    padding:20px 0;
+                    border-bottom:1px solid #333;
+                ">
+
+                    <div>
+
+                        <h3>
+                            {{ item.product.name }}
+                        </h3>
+
+                        <p>
+                            Quantity:
+                            {{ item.quantity }}
+                        </p>
+
+                        <p>
+                            Price:
+                            ₹ {{ item.price }}
+                        </p>
+
+                    </div>
+
+                    <div>
+
+                        <strong style="
+                            color:#d4af37;
+                            font-size:18px;
+                        ">
+                            ₹ {{ item.price * item.quantity }}
+                        </strong>
+
+                    </div>
+
+                </div>
+
+            {% endfor %}
+
+        {% else %}
+
+            <p>
+                No products found for this order.
+            </p>
+
+        {% endif %}
+
+
+        <div style="
+            text-align:right;
+            margin-top:25px;
+        ">
+
+            <h2>
+                Grand Total:
+                <span style="color:#d4af37;">
+                    ₹ {{ order.total_amount }}
+                </span>
+            </h2>
+
+        </div>
+
+    </div>
+
+
+    <!-- =========================
+         UPDATE ORDER
+    ========================= -->
+
+    <div style="
+        background:#1a1a1a;
+        padding:30px;
+        border-radius:10px;
+        border:1px solid #333;
+        margin-top:25px;
+    ">
+
+        <h2>Update Order</h2>
+
+        <form
+            method="POST"
+            action="{{ url_for('admin_update_order', order_id=order.id) }}"
+        >
+
+            <!-- ORDER STATUS -->
+
+            <div style="margin-top:20px;">
+
+                <label>
+                    <strong>Order Status</strong>
+                </label>
+
+                <br>
+
+                <select
+                    name="status"
+                    style="
+                        margin-top:10px;
+                        padding:12px;
+                        width:100%;
+                        max-width:400px;
+                        background:#111;
+                        color:white;
+                        border:1px solid #444;
+                        border-radius:6px;
+                    "
+                >
+
+                    <option
+                        value="Pending"
+                        {% if order.status == "Pending" %}selected{% endif %}
+                    >
+                        Pending
+                    </option>
+
+                    <option
+                        value="Processing"
+                        {% if order.status == "Processing" %}selected{% endif %}
+                    >
+                        Processing
+                    </option>
+
+                    <option
+                        value="Shipped"
+                        {% if order.status == "Shipped" %}selected{% endif %}
+                    >
+                        Shipped
+                    </option>
+
+                    <option
+                        value="Delivered"
+                        {% if order.status == "Delivered" %}selected{% endif %}
+                    >
+                        Delivered
+                    </option>
+
+                    <option
+                        value="Cancelled"
+                        {% if order.status == "Cancelled" %}selected{% endif %}
+                    >
+                        Cancelled
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- PAYMENT STATUS -->
+
+            <div style="margin-top:25px;">
+
+                <label>
+                    <strong>Payment Status</strong>
+                </label>
+
+                <br>
+
+                <select
+                    name="payment_status"
+                    style="
+                        margin-top:10px;
+                        padding:12px;
+                        width:100%;
+                        max-width:400px;
+                        background:#111;
+                        color:white;
+                        border:1px solid #444;
+                        border-radius:6px;
+                    "
+                >
+
+                    <option
+                        value="Pending"
+                        {% if order.payment_status == "Pending" %}selected{% endif %}
+                    >
+                        Pending
+                    </option>
+
+                    <option
+                        value="Paid"
+                        {% if order.payment_status == "Paid" %}selected{% endif %}
+                    >
+                        Paid
+                    </option>
+
+                    <option
+                        value="Failed"
+                        {% if order.payment_status == "Failed" %}selected{% endif %}
+                    >
+                        Failed
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- UPDATE BUTTON -->
+
+            <div style="margin-top:30px;">
+
+                <button
+                    type="submit"
+                    class="hero-button"
+                >
+                    Update Order
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+
+    <!-- =========================
+         NAVIGATION
+    ========================= -->
+
+    <div style="
+        margin-top:30px;
+        display:flex;
+        gap:15px;
+        flex-wrap:wrap;
+    ">
+
+        <a
+            href="{{ url_for('admin_orders') }}"
+            style="text-decoration:none;"
+        >
+
+            <button
+                type="button"
+                class="hero-button"
+            >
+                ← Back to All Orders
+            </button>
+
+        </a>
 
     </div>
 
 </div>
-
-
-<!-- =========================
-     UPDATE ORDER
-========================= -->
-
-<div style="
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-    margin-top:25px;
-">
-
-    <h2>
-        Update Order
-    </h2>
-
-    <form
-        method="POST"
-        action="{{ url_for('admin_update_order', order_id=order.id) }}"
-    >
-
-        <!-- ORDER STATUS -->
-
-        <div style="margin-top:20px;">
-
-            <label>
-                <strong>Order Status</strong>
-            </label>
-
-            <br>
-
-            <select
-                name="status"
-                style="
-                    margin-top:10px;
-                    padding:12px;
-                    width:100%;
-                    max-width:400px;
-                    background:#111;
-                    color:white;
-                    border:1px solid #444;
-                    border-radius:6px;
-                "
-            >
-
-                <option
-                    value="Pending"
-                    {% if order.status == "Pending" %}selected{% endif %}
-                >
-                    Pending
-                </option>
-
-                <option
-                    value="Processing"
-                    {% if order.status == "Processing" %}selected{% endif %}
-                >
-                    Processing
-                </option>
-
-                <option
-                    value="Shipped"
-                    {% if order.status == "Shipped" %}selected{% endif %}
-                >
-                    Shipped
-                </option>
-
-                <option
-                    value="Delivered"
-                    {% if order.status == "Delivered" %}selected{% endif %}
-                >
-                    Delivered
-                </option>
-
-                <option
-                    value="Cancelled"
-                    {% if order.status == "Cancelled" %}selected{% endif %}
-                >
-                    Cancelled
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- PAYMENT STATUS -->
-
-        <div style="margin-top:25px;">
-
-            <label>
-                <strong>Payment Status</strong>
-            </label>
-
-            <br>
-
-            <select
-                name="payment_status"
-                style="
-                    margin-top:10px;
-                    padding:12px;
-                    width:100%;
-                    max-width:400px;
-                    background:#111;
-                    color:white;
-                    border:1px solid #444;
-                    border-radius:6px;
-                "
-            >
-
-                <option
-                    value="Pending"
-                    {% if order.payment_status == "Pending" %}selected{% endif %}
-                >
-                    Pending
-                </option>
-
-                <option
-                    value="Paid"
-                    {% if order.payment_status == "Paid" %}selected{% endif %}
-                >
-                    Paid
-                </option>
-
-                <option
-                    value="Failed"
-                    {% if order.payment_status == "Failed" %}selected{% endif %}
-                >
-                    Failed
-                </option>
-
-            </select>
-
-        </div>
-
-
-        <!-- UPDATE BUTTON -->
-
-        <div style="margin-top:30px;">
-
-            <button
-                type="submit"
-                class="hero-button"
-            >
-                Update Order
-            </button>
-
-        </div>
-
-    </form>
-
-</div>
-
-
-<!-- =========================
-     BACK TO ALL ORDERS
-========================= -->
-
-<div style="margin-top:30px;">
-
-    <a
-        href="{{ url_for('admin_orders') }}"
-        style="text-decoration:none;"
-    >
-        <button
-            type="button"
-            class="hero-button"
-        >
-            ← Back to All Orders
-        </button>
-    </a>
-
-</div>
-
 
 {% endblock %}

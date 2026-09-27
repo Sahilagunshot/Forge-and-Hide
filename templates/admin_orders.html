@@ -11,6 +11,188 @@ Admin Orders | Forge & Hide
 </h1>
 
 
+<!-- =========================
+     ORDER FILTERS
+========================= -->
+
+<div style="
+    margin-top:30px;
+    background:#1a1a1a;
+    padding:25px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <form method="GET">
+
+        <div style="
+            display:flex;
+            gap:20px;
+            flex-wrap:wrap;
+            align-items:end;
+        ">
+
+            <!-- ORDER STATUS -->
+
+            <div>
+
+                <label>
+                    <strong>Order Status</strong>
+                </label>
+
+                <br>
+
+                <select
+                    name="status"
+                    style="
+                        margin-top:8px;
+                        padding:10px;
+                        min-width:200px;
+                        background:#111;
+                        color:white;
+                        border:1px solid #444;
+                        border-radius:6px;
+                    "
+                >
+
+                    <option value="">
+                        All Orders
+                    </option>
+
+                    <option
+                        value="Pending"
+                        {% if status_filter == "Pending" %}selected{% endif %}
+                    >
+                        Pending
+                    </option>
+
+                    <option
+                        value="Processing"
+                        {% if status_filter == "Processing" %}selected{% endif %}
+                    >
+                        Processing
+                    </option>
+
+                    <option
+                        value="Shipped"
+                        {% if status_filter == "Shipped" %}selected{% endif %}
+                    >
+                        Shipped
+                    </option>
+
+                    <option
+                        value="Delivered"
+                        {% if status_filter == "Delivered" %}selected{% endif %}
+                    >
+                        Delivered
+                    </option>
+
+                    <option
+                        value="Cancelled"
+                        {% if status_filter == "Cancelled" %}selected{% endif %}
+                    >
+                        Cancelled
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- PAYMENT STATUS -->
+
+            <div>
+
+                <label>
+                    <strong>Payment Status</strong>
+                </label>
+
+                <br>
+
+                <select
+                    name="payment_status"
+                    style="
+                        margin-top:8px;
+                        padding:10px;
+                        min-width:200px;
+                        background:#111;
+                        color:white;
+                        border:1px solid #444;
+                        border-radius:6px;
+                    "
+                >
+
+                    <option value="">
+                        All Payments
+                    </option>
+
+                    <option
+                        value="Pending"
+                        {% if payment_filter == "Pending" %}selected{% endif %}
+                    >
+                        Pending
+                    </option>
+
+                    <option
+                        value="Paid"
+                        {% if payment_filter == "Paid" %}selected{% endif %}
+                    >
+                        Paid
+                    </option>
+
+                    <option
+                        value="Failed"
+                        {% if payment_filter == "Failed" %}selected{% endif %}
+                    >
+                        Failed
+                    </option>
+
+                </select>
+
+            </div>
+
+
+            <!-- FILTER BUTTON -->
+
+            <div>
+
+                <button
+                    type="submit"
+                    class="hero-button"
+                >
+                    Apply Filter
+                </button>
+
+            </div>
+
+
+            <!-- CLEAR BUTTON -->
+
+            <div>
+
+                <a
+                    href="{{ url_for('admin_orders') }}"
+                    style="text-decoration:none;"
+                >
+
+                    <button
+                        type="button"
+                        class="hero-button"
+                    >
+                        Clear Filters
+                    </button>
+
+                </a>
+
+            </div>
+
+        </div>
+
+    </form>
+
+</div>
+
+
 {% if orders %}
 
 <div style="

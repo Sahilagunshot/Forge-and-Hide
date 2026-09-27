@@ -92,6 +92,13 @@ class Product(db.Model):
 
     is_featured = db.Column(db.Boolean, default=False)
 
+    is_active = db.Column(
+    db.Boolean,
+    default=True,
+    nullable=False,
+    server_default="1"
+    )
+
     created_at = db.Column(
         db.DateTime,
         server_default=func.now()
@@ -160,6 +167,22 @@ class Order(db.Model):
     payment_status = db.Column(
         db.String(50),
         default="Pending"
+    )
+
+    payment_method = db.Column(
+    db.String(50),
+    default="COD"
+    )
+
+    razorpay_order_id = db.Column(
+    db.String(100),
+    nullable=True
+    )
+
+    razorpay_payment_id = db.Column(
+    db.String(100),
+    nullable=True,
+    unique=True
     )
 
     stock_restored = db.Column(

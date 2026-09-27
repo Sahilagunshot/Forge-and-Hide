@@ -6,19 +6,47 @@
 
 {% block content %}
 
-<div class="product-detail">
+<div class="product-image">
 
-    <div class="product-image">
+    {% if product.image %}
 
-        {% if product.image %}
+    <img
+        id="mainProductImage"
+        src="{{ url_for(
+            'static',
+            filename='uploads/' + product.image
+        ) }}"
+        alt="{{ product.name }}"
+    >
+
+    {% endif %}
+
+</div>
+
+{% if product.images %}
+
+<div class="product-gallery-thumbnails">
+
+    {% for image in product.images %}
+
+    <div
+        class="gallery-thumbnail"
+        data-image="{{ url_for('static', filename='uploads/' + image.image) }}"
+        onclick="changeProductImage(this.dataset.image)"
+    >
 
         <img
-        src="{{ url_for('static', filename='uploads/' + product.image) }}"
-        alt="{{ product.name }}">
-
-        {% endif %}
+            src="{{ url_for('static', filename='uploads/' + image.image) }}"
+            alt="{{ product.name }}"
+        >
 
     </div>
+
+    {% endfor %}
+
+</div>
+
+{% endif %}
 
     <div class="product-content">
 
@@ -211,5 +239,23 @@
     </div>
 
 </div>
+
+<script>
+
+function changeProductImage(imageUrl) {
+
+    const mainImage = document.getElementById(
+        "mainProductImage"
+    );
+
+    if (mainImage) {
+
+        mainImage.src = imageUrl;
+
+    }
+
+}
+
+</script>
 
 {% endblock %}

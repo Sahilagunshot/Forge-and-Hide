@@ -2,6 +2,10 @@ from flask import Flask, render_template, redirect, url_for, request, flash, ses
 from werkzeug.utils import secure_filename
 import uuid
 import os
+import hmac
+import hashlib
+import razorpay
+from dotenv import load_dotenv
 from flask_migrate import Migrate
 from flask_login import (
     LoginManager,
@@ -27,6 +31,18 @@ from models import (
 
 app = Flask(__name__)
 app.config.from_object(Config)
+load_dotenv()
+
+RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
+RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
+RAZORPAY_WEBHOOK_SECRET = os.getenv(
+    "RAZORPAY_WEBHOOK_SECRET"
+)
+
+razorpay_client = razorpay.Client(
+    auth=(RAZORPAY_KEY_ID, RAZORPAY_KEY_SECRET)
+)
+
 
 db.init_app(app)
 
@@ -37,8 +53,6 @@ login_manager.login_view = "admin_login"
 login_manager.init_app(app)
 from functools import wraps
 
-
-from functools import wraps
 
 
 def admin_required(f):
@@ -62,7 +76,7 @@ def admin_required(f):
 
     return decorated_function
 
-from functools import wraps
+
 
 def customer_required(f):
     @wraps(f)
@@ -80,19 +94,23 @@ def inject_cart_count():
 
     cart_count = 0
 
-    if current_user.is_authenticated:
+    customer_id = session.get("customer_id")
+
+    if customer_id:
 
         cart_items = Cart.query.filter_by(
-            customer_id=current_user.id
+            customer_id=customer_id
         ).all()
 
         for item in cart_items:
-            cart_count += item.quantity
+
+            if item.product and item.product.is_active:
+
+                cart_count += item.quantity
 
     return {
         "cart_count": cart_count
     }
-
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -103,10 +121,13 @@ def load_user(user_id):
 def home():
 
     featured_products = Product.query.filter_by(
-        is_featured=True
+        is_featured=True,
+        is_active=True
     ).limit(8).all()
 
-    latest_products = Product.query.order_by(
+    latest_products = Product.query.filter_by(
+        is_active=True
+    ).order_by(
         Product.id.desc()
     ).limit(8).all()
 
@@ -132,16 +153,19 @@ def shop():
 
         if category:
             products = Product.query.filter_by(
-                category_id=category.id
+              category_id=category.id,
+              is_active=True
             ).order_by(
-                Product.id.desc()
+              Product.id.desc()
             ).all()
         else:
             products = []
     else:
-        products = Product.query.order_by(
-            Product.id.desc()
-        ).all()
+            products = Product.query.filter_by(
+              is_active=True
+            ).order_by(
+              Product.id.desc()
+            ).all()
 
     return render_template(
         "shop.html",
@@ -237,7 +261,8 @@ def customer_logout():
 def product_detail(slug):
 
     product = Product.query.filter_by(
-        slug=slug
+        slug=slug,
+        is_active=True
     ).first_or_404()
 
     return render_template(
@@ -249,7 +274,15 @@ def product_detail(slug):
 @customer_required
 def add_to_cart(product_id):
 
-    product = Product.query.get_or_404(product_id)
+    product = Product.query.filter_by(
+    id=product_id,
+    is_active=True
+).first_or_404()
+    if not product.is_active:
+
+          flash("This product is no longer available.")
+
+          return redirect(url_for("shop"))
 
     # =========================
     # CHECK PRODUCT STOCK
@@ -321,20 +354,56 @@ def add_to_cart(product_id):
 @customer_required
 def cart():
 
+    customer_id = session.get("customer_id")
+
     cart_items = Cart.query.filter_by(
-        customer_id=session.get("customer_id")
+        customer_id=customer_id
     ).all()
-    print("CURRENT CUSTOMER IN CART:", session.get("customer_id"))
-    print("CART ITEMS LOADED:", cart_items)
+
+    print(
+        "CURRENT CUSTOMER IN CART:",
+        customer_id
+    )
+
+    print(
+        "CART ITEMS LOADED:",
+        cart_items
+    )
+
+    # =========================
+    # REMOVE ARCHIVED PRODUCTS
+    # =========================
+
+    active_cart_items = []
+
+    for item in cart_items:
+
+        if item.product and item.product.is_active:
+
+            active_cart_items.append(item)
+
+        else:
+
+            db.session.delete(item)
+
+    db.session.commit()
+
+    # =========================
+    # CALCULATE TOTAL
+    # =========================
 
     total = 0
 
-    for item in cart_items:
-        total += item.product.price * item.quantity
+    for item in active_cart_items:
+
+        total += (
+            item.product.price *
+            item.quantity
+        )
 
     return render_template(
         "cart.html",
-        cart_items=cart_items,
+        cart_items=active_cart_items,
         total=total
     )
 
@@ -343,11 +412,56 @@ def cart():
 def checkout():
 
     cart_items = Cart.query.filter_by(
-    customer_id=session.get("customer_id")
-).all()
+        customer_id=session.get("customer_id")
+    ).all()
 
     if not cart_items:
-        flash("Your cart is empty")
+
+        flash("Your cart is empty.")
+        return redirect(url_for("cart"))
+
+    # =========================
+    # REMOVE ARCHIVED PRODUCTS
+    # =========================
+
+    active_cart_items = []
+
+    for item in cart_items:
+
+        if item.product and item.product.is_active:
+            active_cart_items.append(item)
+
+        else:
+            db.session.delete(item)
+
+    db.session.commit()
+
+    cart_items = active_cart_items
+
+    if not cart_items:
+
+        flash("Your cart is empty.")
+        return redirect(url_for("cart"))
+
+    # =========================
+    # CHECK PRODUCT EXISTS
+    # =========================
+
+    for item in cart_items:
+
+        if not item.product:
+            db.session.delete(item)
+
+    db.session.commit()
+
+    cart_items = [
+        item for item in cart_items
+        if item.product
+    ]
+
+    if not cart_items:
+
+        flash("Your cart is empty.")
         return redirect(url_for("cart"))
 
     # =========================
@@ -409,16 +523,147 @@ def checkout():
         city = request.form.get("city")
         state = request.form.get("state")
         pincode = request.form.get("pincode")
+        payment_method = request.form.get("payment_method")
+
+        if payment_method == "COD":
+
+            payment_status = "Pending"
+
+        elif payment_method == "ONLINE":
+
+            payment_status = "Pending"
 
         # =========================
-        # CREATE ORDER
+        # VALIDATE PAYMENT METHOD
+        # =========================
+
+        if payment_method not in ["COD", "ONLINE"]:
+
+            flash("Please select a valid payment method.")
+
+            return redirect(url_for("checkout"))
+
+        # =========================
+        # VALIDATE SHIPPING DETAILS
+        # =========================
+
+        if not all([
+            shipping_name,
+            shipping_phone,
+            shipping_address,
+            city,
+            state,
+            pincode
+        ]):
+
+            flash("Please fill all shipping details.")
+
+            return redirect(url_for("checkout"))
+
+        # =========================
+        # ONLINE PAYMENT
+        # =========================
+
+        if payment_method == "ONLINE":
+
+            
+
+            # =========================
+            # CREATE NEW LOCAL ORDER
+            # =========================
+
+            order = Order(
+                customer_id=session.get("customer_id"),
+                total_amount=total,
+                status="Pending",
+                payment_status="Pending",
+                payment_method="ONLINE",
+                shipping_name=shipping_name,
+                shipping_phone=shipping_phone,
+                shipping_address=shipping_address,
+                city=city,
+                state=state,
+                pincode=pincode
+            )
+
+            db.session.add(order)
+
+            db.session.flush()
+
+            # =========================
+            # CREATE RAZORPAY ORDER
+            # =========================
+
+            try:
+
+                razorpay_order = razorpay_client.order.create(
+                    {
+                        "amount": int(round(total * 100)),
+                        "currency": "INR",
+                        "receipt": f"fh_order_{order.id}"
+                    }
+                )
+
+            except Exception:
+
+                db.session.rollback()
+
+                flash(
+                    "Didn't connect to Payment Gateway. "
+                    "Please Try Again."
+                )
+
+                return redirect(
+                    url_for("checkout")
+                )
+
+            order.razorpay_order_id = (
+                razorpay_order["id"]
+            )
+
+            # =========================
+            # CREATE ORDER ITEMS
+            # DO NOT REDUCE STOCK YET
+            # =========================
+
+            for item in cart_items:
+
+                order_item = OrderItem(
+                    order_id=order.id,
+                    product_id=item.product_id,
+                    quantity=item.quantity,
+                    price=item.product.price
+                )
+
+                db.session.add(order_item)
+
+            # =========================
+            # SAVE PENDING ORDER
+            # =========================
+
+            db.session.commit()
+
+            # =========================
+            # OPEN PAYMENT PAGE
+            # =========================
+
+            return redirect(
+                url_for(
+                    "online_payment",
+                    order_id=order.id
+                )
+            )
+
+        # =========================
+        # COD ORDER
         # =========================
 
         order = Order(
             customer_id=session.get("customer_id"),
             total_amount=total,
             status="Pending",
-            payment_status="Pending",
+            payment_status=payment_status,
+            payment_method=payment_method,
             shipping_name=shipping_name,
             shipping_phone=shipping_phone,
             shipping_address=shipping_address,
@@ -482,6 +727,15 @@ def checkout():
         total=total
     )
 
+
+@app.route("/online-payment-demo", methods=["POST"])
+@customer_required
+def online_payment_demo():
+
+    return render_template(
+        "online_payment_demo.html"
+    )
+
 @app.route("/order-confirmation/<int:order_id>")
 @customer_required
 def order_confirmation(order_id):
@@ -500,8 +754,13 @@ def order_confirmation(order_id):
 @customer_required
 def my_orders():
 
+    customer_id = session.get("customer_id")
+
+    if not customer_id:
+        return redirect(url_for("login"))
+
     orders = Order.query.filter_by(
-        customer_id=session.get("customer_id")
+        customer_id=customer_id
     ).order_by(
         Order.created_at.desc()
     ).all()
@@ -515,9 +774,15 @@ def my_orders():
 @customer_required
 def order_details(order_id):
 
+    customer_id = session.get("customer_id")
+
+    if not customer_id:
+        return redirect(url_for("login"))
+
     order = Order.query.get_or_404(order_id)
 
-    if order.customer_id != session.get("customer_id"):
+    if order.customer_id != customer_id:
+        flash("You are not authorized to view this order.")
         return redirect(url_for("my_orders"))
 
     return render_template(
@@ -580,17 +845,36 @@ def admin_update_order(order_id):
     ]
 
     # =========================
+    # VALIDATE INPUT
+    # =========================
+
+    if status not in allowed_statuses:
+        flash("Invalid order status.")
+        return redirect(
+            url_for(
+                "admin_order_details",
+                order_id=order.id
+            )
+        )
+
+    if payment_status not in allowed_payment_statuses:
+        flash("Invalid payment status.")
+        return redirect(
+            url_for(
+                "admin_order_details",
+                order_id=order.id
+            )
+        )
+
+    # =========================
     # UPDATE ORDER STATUS
     # =========================
 
-    if status in allowed_statuses:
-        order.status = status
-
-    if payment_status in allowed_payment_statuses:
-        order.payment_status = payment_status
+    order.status = status
+    order.payment_status = payment_status
 
     # =========================
-    # RESTORE STOCK
+    # DETERMINE STOCK ACTION
     # =========================
 
     restore_stock = (
@@ -605,14 +889,71 @@ def admin_update_order(order_id):
         )
     )
 
+    restore_was_reversed = (
+        order.stock_restored
+        and status != "Cancelled"
+        and payment_status != "Failed"
+    )
+
+    # =========================
+    # RESTORE STOCK
+    # =========================
+
     if restore_stock and not order.stock_restored:
 
         for item in order.items:
 
             if item.product:
+
                 item.product.stock += item.quantity
 
         order.stock_restored = True
+
+    # =========================
+    # RE-DEDUCT STOCK
+    # =========================
+
+    elif restore_was_reversed:
+
+        # Check stock for ALL items first
+
+        stock_available = True
+
+        for item in order.items:
+
+            if item.product:
+
+                if item.product.stock < item.quantity:
+
+                    stock_available = False
+                    break
+
+        if not stock_available:
+
+            db.session.rollback()
+
+            flash(
+                "Order status changed back, "
+                "but there is not enough stock to restore "
+                "this order."
+            )
+
+            return redirect(
+                url_for(
+                    "admin_order_details",
+                    order_id=order.id
+                )
+            )
+
+        # Deduct stock only after ALL items pass
+
+        for item in order.items:
+
+            if item.product:
+
+                item.product.stock -= item.quantity
+
+        order.stock_restored = False
 
     # =========================
     # SAVE
@@ -748,6 +1089,33 @@ def admin_dashboard():
         recent_orders=recent_orders
     )
 
+@app.route("/admin/inventory")
+@admin_required
+def admin_inventory():
+
+    products = Product.query.order_by(
+        Product.name.asc()
+    ).all()
+
+    return render_template(
+        "admin_inventory.html",
+        products=products
+    )
+
+@app.route("/admin/customers")
+@admin_required
+def admin_customers():
+
+    customers = Customer.query.order_by(
+        Customer.id.desc()
+    ).all()
+
+    return render_template(
+        "admin_customers.html",
+        customers=customers
+    )
+
+
 @app.route("/admin/orders")
 @admin_required
 def admin_orders():
@@ -755,15 +1123,55 @@ def admin_orders():
     if not isinstance(current_user, Admin):
         return redirect(url_for("home"))
 
-    orders = Order.query.order_by(
+    status_filter = request.args.get("status")
+    payment_filter = request.args.get("payment_status")
+
+    query = Order.query
+
+    # =========================
+    # ORDER STATUS FILTER
+    # =========================
+
+    if status_filter in [
+        "Pending",
+        "Processing",
+        "Shipped",
+        "Delivered",
+        "Cancelled"
+    ]:
+
+        query = query.filter(
+            Order.status == status_filter
+        )
+
+    # =========================
+    # PAYMENT STATUS FILTER
+    # =========================
+
+    if payment_filter in [
+        "Pending",
+        "Paid",
+        "Failed"
+    ]:
+
+        query = query.filter(
+            Order.payment_status == payment_filter
+        )
+
+    # =========================
+    # LOAD ORDERS
+    # =========================
+
+    orders = query.order_by(
         Order.created_at.desc()
     ).all()
 
     return render_template(
         "admin_orders.html",
-        orders=orders
+        orders=orders,
+        status_filter=status_filter,
+        payment_filter=payment_filter
     )
-
 
 @app.route("/logout")
 @admin_required
@@ -923,23 +1331,138 @@ def delete_product(id):
 
     product = Product.query.get_or_404(id)
 
+    # =========================
+    # CHECK EXISTING ORDERS
+    # =========================
+
+    order_item = OrderItem.query.filter_by(
+        product_id=product.id
+    ).first()
+
+    if order_item:
+        flash(
+            "This product cannot be deleted because it exists in an order."
+        )
+
+        return redirect(url_for("products"))
+
+    # =========================
+    # CHECK ACTIVE CARTS
+    # =========================
+
+    cart_item = Cart.query.filter_by(
+        product_id=product.id
+    ).first()
+
+    if cart_item:
+        flash(
+            "This product cannot be deleted because it is in a customer cart."
+        )
+
+        return redirect(url_for("products"))
+
+    # =========================
+    # SAVE MAIN PRODUCT IMAGE
+    # =========================
+
+    main_image_path = None
+
     if product.image:
 
-        image_path = os.path.join(
+        main_image_path = os.path.join(
             app.config["UPLOAD_FOLDER"],
             product.image
         )
 
-        if os.path.exists(image_path):
-            os.remove(image_path)
+    # =========================
+    # SAVE GALLERY IMAGE PATHS
+    # =========================
+
+    gallery_images = ProductImage.query.filter_by(
+        product_id=product.id
+    ).all()
+
+    gallery_image_paths = []
+
+    for gallery_image in gallery_images:
+
+        if gallery_image.image:
+
+            gallery_image_paths.append(
+                os.path.join(
+                    app.config["UPLOAD_FOLDER"],
+                    gallery_image.image
+                )
+            )
+
+    # =========================
+    # DELETE GALLERY DATABASE RECORDS
+    # =========================
+
+    for gallery_image in gallery_images:
+
+        db.session.delete(gallery_image)
+
+    # =========================
+    # DELETE PRODUCT
+    # =========================
 
     db.session.delete(product)
+
     db.session.commit()
+
+    # =========================
+    # DELETE MAIN IMAGE FILE
+    # =========================
+
+    if (
+        main_image_path
+        and os.path.exists(main_image_path)
+    ):
+        os.remove(main_image_path)
+
+    # =========================
+    # DELETE GALLERY IMAGE FILES
+    # =========================
+
+    for image_path in gallery_image_paths:
+
+        if os.path.exists(image_path):
+
+            os.remove(image_path)
 
     flash("Product Deleted Successfully")
 
     return redirect(url_for("products"))
 
+@app.route("/admin/products/archive/<int:id>")
+@admin_required
+def archive_product(id):
+
+    product = Product.query.get_or_404(id)
+
+    product.is_active = False
+
+    db.session.commit()
+
+    flash("Product Archived Successfully")
+
+    return redirect(url_for("products"))
+
+
+@app.route("/admin/products/unarchive/<int:id>")
+@admin_required
+def unarchive_product(id):
+
+    product = Product.query.get_or_404(id)
+
+    product.is_active = True
+
+    db.session.commit()
+
+    flash("Product Restored Successfully")
+
+    return redirect(url_for("products"))
 
 @app.route("/admin/products/<int:id>/gallery")
 @admin_required
@@ -955,6 +1478,105 @@ def product_gallery(id):
         "admin/product_gallery.html",
         product=product,
         images=images
+    )
+
+@app.route(
+    "/admin/products/<int:id>/gallery/add",
+    methods=["POST"]
+)
+@admin_required
+def add_product_gallery_image(id):
+
+    product = Product.query.get_or_404(id)
+
+    image = request.files.get("image")
+
+    if not image or image.filename == "":
+        flash("Please select an image.")
+
+        return redirect(
+            url_for(
+                "product_gallery",
+                id=product.id
+            )
+        )
+
+    filename = secure_filename(image.filename)
+
+    # Make filename unique
+    filename = f"{uuid.uuid4().hex}_{filename}"
+
+    image.save(
+        os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            filename
+        )
+    )
+
+    last_image = ProductImage.query.filter_by(
+        product_id=product.id
+    ).order_by(
+        ProductImage.sort_order.desc()
+    ).first()
+
+    if last_image:
+        next_sort_order = last_image.sort_order + 1
+    else:
+        next_sort_order = 0
+
+    gallery_image = ProductImage(
+        product_id=product.id,
+        image=filename,
+        sort_order=next_sort_order
+    )
+
+    db.session.add(gallery_image)
+    db.session.commit()
+
+    flash("Image Added To Gallery")
+
+    return redirect(
+        url_for(
+            "product_gallery",
+            id=product.id
+        )
+    )
+
+@app.route(
+    "/admin/products/gallery/image/<int:image_id>/delete",
+    methods=["POST"]
+)
+@admin_required
+def delete_product_gallery_image(image_id):
+
+    gallery_image = ProductImage.query.get_or_404(
+        image_id
+    )
+
+    product_id = gallery_image.product_id
+
+    image_path = None
+
+    if gallery_image.image:
+
+        image_path = os.path.join(
+            app.config["UPLOAD_FOLDER"],
+            gallery_image.image
+        )
+
+    db.session.delete(gallery_image)
+    db.session.commit()
+
+    if image_path and os.path.exists(image_path):
+        os.remove(image_path)
+
+    flash("Gallery Image Deleted")
+
+    return redirect(
+        url_for(
+            "product_gallery",
+            id=product_id
+        )
     )
 
 
@@ -1027,5 +1649,405 @@ def delete_category(id):
     flash("Category Deleted Successfully")
 
     return redirect(url_for("categories"))
+
+@app.route("/razorpay-test-order")
+@customer_required
+def razorpay_test_order():
+
+    amount = 100
+
+    razorpay_order = razorpay_client.order.create(
+        {
+            "amount": amount,
+            "currency": "INR",
+            "payment_capture": 1
+        }
+    )
+
+    return {
+        "success": True,
+        "razorpay_order_id": razorpay_order["id"],
+        "amount": razorpay_order["amount"],
+        "currency": razorpay_order["currency"]
+    }
+
+
+
+
+@app.route(
+    "/verify-razorpay-payment",
+    methods=["POST"]
+)
+@customer_required
+def verify_razorpay_payment():
+
+    data = request.get_json()
+
+    razorpay_payment_id = data.get(
+        "razorpay_payment_id"
+    )
+
+    razorpay_order_id = data.get(
+        "razorpay_order_id"
+    )
+
+    razorpay_signature = data.get(
+        "razorpay_signature"
+    )
+
+    # CHECK REQUIRED PAYMENT DETAILS
+    if not all([
+        razorpay_payment_id,
+        razorpay_order_id,
+        razorpay_signature
+    ]):
+
+        return {
+            "success": False,
+            "message": "Missing payment details."
+        }, 400
+
+    # FIND OUR ORDER
+    order = Order.query.filter_by(
+        razorpay_order_id=razorpay_order_id
+    ).first()
+
+    if not order:
+
+        return {
+            "success": False,
+            "message": "Order not found."
+        }, 404
+
+    # =========================
+    # CHECK CUSTOMER OWNERSHIP
+    # =========================
+
+    if order.customer_id != session.get(
+        "customer_id"
+    ):
+
+        return {
+            "success": False,
+            "message": "Unauthorized order."
+        }, 403
+
+
+    # =========================
+    # CHECK ORDER STATUS
+    # =========================
+
+    if order.status == "Cancelled":
+
+        return {
+            "success": False,
+            "message": "This order has been cancelled."
+        }, 400
+
+
+    # =========================
+    # DUPLICATE VERIFICATION
+    # =========================
+
+    if order.payment_status == "Paid":
+
+        if order.razorpay_payment_id == razorpay_payment_id:
+
+            return {
+                "success": True
+            }
+
+        return {
+            "success": False,
+            "message": "Order has already been paid."
+        }, 400
+
+    # CHECK WHETHER THIS PAYMENT ID
+    # WAS ALREADY USED FOR ANOTHER ORDER
+    existing_payment = Order.query.filter_by(
+        razorpay_payment_id=razorpay_payment_id
+    ).first()
+
+    if existing_payment:
+
+        return {
+            "success": False,
+            "message": "Payment has already been used."
+        }, 400
+
+    # VERIFY RAZORPAY SIGNATURE
+    try:
+
+        razorpay_client.utility.verify_payment_signature(
+            {
+                "razorpay_order_id":
+                    order.razorpay_order_id,
+
+                "razorpay_payment_id":
+                    razorpay_payment_id,
+
+                "razorpay_signature":
+                    razorpay_signature
+            }
+        )
+
+    except Exception:
+
+        return {
+            "success": False,
+            "message": "Payment verification failed."
+        }, 400
+
+    # FINAL STOCK CHECK
+    for item in order.items:
+
+        product = Product.query.get(
+            item.product_id
+        )
+
+        if not product:
+
+            return {
+                "success": False,
+                "message": "Product no longer exists."
+            }, 400
+
+        if product.stock < item.quantity:
+
+            return {
+                "success": False,
+                "message":
+                    f"Not enough stock for {product.name}."
+            }, 400
+
+    # REDUCE STOCK
+    for item in order.items:
+
+        product = Product.query.get(
+            item.product_id
+        )
+
+        product.stock -= item.quantity
+
+    # =========================
+    # CLEAR ONLY ITEMS
+    # BELONGING TO THIS ORDER
+    # =========================
+
+    ordered_product_ids = {
+        item.product_id
+        for item in order.items
+    }
+
+    cart_items = Cart.query.filter(
+        Cart.customer_id == session.get("customer_id"),
+        Cart.product_id.in_(ordered_product_ids)
+    ).all()
+
+    for cart_item in cart_items:
+
+        db.session.delete(cart_item)
+
+    # SAVE PAYMENT INFORMATION
+    order.razorpay_payment_id = (
+        razorpay_payment_id
+    )
+
+    order.payment_status = "Paid"
+
+    db.session.commit()
+
+    return {
+        "success": True
+    }
+
+@app.route("/online-payment/<int:order_id>", methods=["GET"])
+@customer_required
+def online_payment(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    if order.customer_id != session.get("customer_id"):
+        flash("Unauthorized order.")
+        return redirect(url_for("my_orders"))
+
+    return render_template(
+        "online_payment.html",
+        total=order.total_amount,
+        payment_method="ONLINE",
+        order_id=order.id,
+        razorpay_order_id=order.razorpay_order_id,
+        razorpay_key_id=RAZORPAY_KEY_ID
+    )
+
+
+
+@app.route(
+    "/retry-payment/<int:order_id>",
+    methods=["GET"]
+)
+@customer_required
+def retry_payment(order_id):
+
+    # FIND ORDER
+    order = Order.query.get_or_404(order_id)
+
+    # CHECK CUSTOMER OWNERSHIP
+    if order.customer_id != session.get(
+        "customer_id"
+    ):
+        flash("Unauthorized order.")
+        return redirect(url_for("my_orders"))
+
+    # =========================
+    # ALREADY PAID
+    # =========================
+
+    if order.payment_status == "Paid":
+
+        flash("This order has already been paid.")
+        return redirect(
+                url_for(
+                "order_confirmation",
+                order_id=order.id
+        )
+    )
+
+
+    # =========================
+    # CANCELLED ORDER
+    # =========================
+
+    if order.status == "Cancelled":
+
+        flash(
+            "This order has been cancelled "
+            "and payment cannot be completed."
+    )
+
+        return redirect(
+            url_for(
+            "my_orders"
+        )
+    )
+
+
+    # =========================
+    # ONLY ONLINE ORDERS
+    # CAN BE RETRIED
+    # =========================
+
+    if order.payment_method != "ONLINE":
+
+        flash("This order does not use online payment.")
+
+        return redirect(
+            url_for(
+            "my_orders"
+            )
+        )
+
+    # CREATE A NEW RAZORPAY ORDER
+    # FOR THE SAME LOCAL ORDER
+    razorpay_order = razorpay_client.order.create(
+        {
+            "amount": int(
+                round(order.total_amount * 100)
+            ),
+            "currency": "INR",
+            "receipt": f"fh_order_{order.id}_retry"
+        }
+    )
+
+    # UPDATE RAZORPAY ORDER ID
+    order.razorpay_order_id = (
+        razorpay_order["id"]
+    )
+
+    # RESET PAYMENT STATUS
+    order.payment_status = "Pending"
+
+    db.session.commit()
+
+    # OPEN PAYMENT PAGE AGAIN
+    return render_template(
+        "online_payment.html",
+        total=order.total_amount,
+        payment_method="ONLINE",
+        order_id=order.id,
+        razorpay_order_id=razorpay_order["id"],
+        razorpay_key_id=RAZORPAY_KEY_ID
+    )
+
+@app.route(
+    "/razorpay-webhook",
+    methods=["POST"]
+)
+def razorpay_webhook():
+
+    # =========================
+    # RECEIVE WEBHOOK
+    # =========================
+
+    payload = request.get_data()
+
+    webhook_signature = request.headers.get(
+        "X-Razorpay-Signature"
+    )
+
+    if not webhook_signature:
+
+        return {
+            "success": False,
+            "message": "Missing webhook signature."
+        }, 400
+
+
+    # =========================
+    # CHECK WEBHOOK SECRET
+    # =========================
+
+    if not RAZORPAY_WEBHOOK_SECRET:
+
+        return {
+            "success": False,
+            "message": "Webhook secret is not configured."
+        }, 500
+
+
+    # =========================
+    # GENERATE EXPECTED SIGNATURE
+    # =========================
+
+    expected_signature = hmac.new(
+        RAZORPAY_WEBHOOK_SECRET.encode(),
+        payload,
+        hashlib.sha256
+    ).hexdigest()
+
+
+    # =========================
+    # VERIFY SIGNATURE
+    # =========================
+
+    if not hmac.compare_digest(
+        expected_signature,
+        webhook_signature
+    ):
+
+        return {
+            "success": False,
+            "message": "Invalid webhook signature."
+        }, 400
+
+
+    # =========================
+    # WEBHOOK VERIFIED
+    # =========================
+
+    return {
+        "success": True,
+        "message": "Webhook verified."
+    }, 200
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run(debug=True, use_reloader=False)

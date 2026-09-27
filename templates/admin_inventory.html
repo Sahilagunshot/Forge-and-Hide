@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}
+Inventory | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Inventory</h1>
+
+    <p>
+        Check the current stock of all products.
+    </p>
+
+    {% if products %}
+
+    <div style="
+        overflow-x:auto;
+        margin-top:25px;
+    ">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+        ">
+
+            <thead>
+
+                <tr>
+
+                    <th style="padding:12px; text-align:left;">
+                        Product
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Price
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Stock
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Status
+                    </th>
+
+                </tr>
+
+            </thead>
+
+            <tbody>
+
+                {% for product in products %}
+
+                <tr style="
+                    border-top:1px solid #333;
+                ">
+
+                    <td style="padding:12px;">
+                        {{ product.name }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        ₹ {{ product.price }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        {{ product.stock }}
+                    </td>
+
+                    <td style="padding:12px;">
+
+                        {% if product.stock <= 0 %}
+
+                            <strong>
+                                Out of Stock
+                            </strong>
+
+                        {% elif product.stock <= 5 %}
+
+                            <strong>
+                                Low Stock
+                            </strong>
+
+                        {% else %}
+
+                            <strong>
+                                In Stock
+                            </strong>
+
+                        {% endif %}
+
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+        <p style="margin-top:25px;">
+            No products found.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

@@ -6,66 +6,326 @@ My Orders | Forge & Hide
 
 {% block content %}
 
-<h1 class="section-title">
-    My Orders
-</h1>
-
-{% if orders %}
-
-<div style="margin-top:40px;">
-
-{% for order in orders %}
-
 <div style="
-    background:#1a1a1a;
-    padding:25px;
-    margin-bottom:20px;
-    border-radius:10px;
-    border:1px solid #333;
+    max-width:1100px;
+    margin:60px auto;
+    padding:0 25px 80px;
 ">
 
-    <h2>
-        Order #{{ order.id }}
-    </h2>
+    <h1 class="section-title">
+        My Orders
+    </h1>
 
-    <p>
-        <strong>Order Date:</strong>
-        {{ order.created_at }}
+    <p style="
+        color:#888;
+        margin-top:12px;
+        font-size:15px;
+    ">
+        View your orders, payment status and order details.
     </p>
 
-    <p>
-        <strong>Total:</strong>
-        ₹ {{ order.total_amount }}
-    </p>
 
-    <p>
-        <strong>Order Status:</strong>
-        {{ order.status }}
-    </p>
+    {% if orders %}
 
-    <p>
-        <strong>Payment Status:</strong>
-        {{ order.payment_status }}
-    </p>
+    <div style="
+        margin-top:45px;
+        display:flex;
+        flex-direction:column;
+        gap:22px;
+    ">
 
-    <a href="{{ url_for('order_details', order_id=order.id) }}">
-    <button class="hero-button">
-        View Order
-    </button>
-    </a>
+        {% for order in orders %}
+
+        <div style="
+            background:#151515;
+            border:1px solid #2d2d2d;
+            border-radius:12px;
+            padding:28px;
+            box-shadow:0 10px 30px rgba(0,0,0,0.18);
+        ">
+
+            <!-- TOP SECTION -->
+
+            <div style="
+                display:flex;
+                justify-content:space-between;
+                align-items:flex-start;
+                gap:20px;
+                flex-wrap:wrap;
+            ">
+
+                <div>
+
+                    <div style="
+                        color:#888;
+                        font-size:13px;
+                        letter-spacing:1px;
+                        text-transform:uppercase;
+                    ">
+                        Order
+                    </div>
+
+                    <h2 style="
+                        margin:6px 0 0;
+                        font-size:24px;
+                        font-weight:500;
+                        color:#f5f5f5;
+                    ">
+                        #{{ order.id }}
+                    </h2>
+
+                </div>
+
+
+                <div style="
+                    text-align:right;
+                ">
+
+                    <div style="
+                        color:#888;
+                        font-size:13px;
+                        letter-spacing:1px;
+                        text-transform:uppercase;
+                    ">
+                        Order Date
+                    </div>
+
+                    <div style="
+                        margin-top:6px;
+                        color:#ddd;
+                        font-size:14px;
+                    ">
+                        {{ order.created_at }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- DIVIDER -->
+
+            <div style="
+                height:1px;
+                background:#292929;
+                margin:25px 0;
+            "></div>
+
+
+            <!-- ORDER INFORMATION -->
+
+            <div style="
+                display:grid;
+                grid-template-columns:repeat(3,1fr);
+                gap:25px;
+            ">
+
+
+                <!-- TOTAL -->
+
+                <div>
+
+                    <div style="
+                        color:#777;
+                        font-size:12px;
+                        letter-spacing:1px;
+                        text-transform:uppercase;
+                    ">
+                        Total
+                    </div>
+
+                    <div style="
+                        margin-top:8px;
+                        color:#d4af37;
+                        font-size:21px;
+                        font-weight:500;
+                    ">
+                        ₹ {{ "%.2f"|format(order.total_amount) }}
+                    </div>
+
+                </div>
+
+
+                <!-- ORDER STATUS -->
+
+                <div>
+
+                    <div style="
+                        color:#777;
+                        font-size:12px;
+                        letter-spacing:1px;
+                        text-transform:uppercase;
+                    ">
+                        Order Status
+                    </div>
+
+                    <div style="
+                        margin-top:8px;
+                        color:#ddd;
+                        font-size:15px;
+                    ">
+                        {{ order.status }}
+                    </div>
+
+                </div>
+
+
+                <!-- PAYMENT STATUS -->
+
+                <div>
+
+                    <div style="
+                        color:#777;
+                        font-size:12px;
+                        letter-spacing:1px;
+                        text-transform:uppercase;
+                    ">
+                        Payment
+                    </div>
+
+                    <div style="
+                        margin-top:8px;
+                        color:#ddd;
+                        font-size:15px;
+                    ">
+                        {{ order.payment_status }}
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <!-- ACTIONS -->
+
+            <div style="
+                margin-top:28px;
+                padding-top:24px;
+                border-top:1px solid #292929;
+                display:flex;
+                gap:12px;
+                flex-wrap:wrap;
+            ">
+
+
+                <!-- VIEW ORDER -->
+
+                <a
+                    href="{{ url_for(
+                        'order_details',
+                        order_id=order.id
+                    ) }}"
+                    style="
+                        text-decoration:none;
+                    "
+                >
+
+                    <button
+                        type="button"
+                        class="hero-button"
+                        style="
+                            min-width:140px;
+                        "
+                    >
+                        View Order
+                    </button>
+
+                </a>
+
+
+                <!-- COMPLETE ONLINE PAYMENT -->
+
+                {% if order.payment_method == "ONLINE"
+                      and order.payment_status != "Paid" %}
+
+                <a
+                    href="{{ url_for(
+                        'retry_payment',
+                        order_id=order.id
+                    ) }}"
+                    style="
+                        text-decoration:none;
+                    "
+                >
+
+                    <button
+                        type="button"
+                        class="hero-button"
+                        style="
+                            min-width:170px;
+                        "
+                    >
+                        Complete Payment
+                    </button>
+
+                </a>
+
+                {% endif %}
+
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+
+    {% else %}
+
+    <div style="
+        margin-top:50px;
+        padding:60px 30px;
+        background:#151515;
+        border:1px solid #2d2d2d;
+        border-radius:12px;
+        text-align:center;
+    ">
+
+        <h2 style="
+            margin:0;
+            font-size:24px;
+            font-weight:500;
+            color:#f5f5f5;
+        ">
+            No Orders Yet
+        </h2>
+
+        <p style="
+            margin-top:12px;
+            color:#888;
+        ">
+            Your orders will appear here once you place your first order.
+        </p>
+
+    </div>
+
+    {% endif %}
 
 </div>
 
-{% endfor %}
 
-</div>
+<!-- MOBILE RESPONSIVE -->
 
-{% else %}
+<style>
 
-<h2>
-    You have no orders yet.
-</h2>
+@media (max-width: 700px) {
 
-{% endif %}
+    .my-orders-grid {
+        grid-template-columns:1fr !important;
+    }
+
+}
+
+@media (max-width: 700px) {
+
+    .order-information-grid {
+        grid-template-columns:1fr !important;
+    }
+
+}
+
+</style>
 
 {% endblock %}

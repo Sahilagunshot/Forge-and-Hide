@@ -25,14 +25,124 @@ Order #{{ order.id }} | Forge & Hide
         {{ order.created_at }}
     </p>
 
+
+    <!-- ORDER STATUS -->
+
     <p>
         <strong>Order Status:</strong>
-        {{ order.status }}
+
+        {% if order.status == "Pending" %}
+
+            <span style="
+                color:#f59e0b;
+                font-weight:bold;
+            ">
+                🟡 Pending
+            </span>
+
+        {% elif order.status == "Processing" %}
+
+            <span style="
+                color:#3b82f6;
+                font-weight:bold;
+            ">
+                🔵 Processing
+            </span>
+
+        {% elif order.status == "Shipped" %}
+
+            <span style="
+                color:#a855f7;
+                font-weight:bold;
+            ">
+                🟣 Shipped
+            </span>
+
+        {% elif order.status == "Delivered" %}
+
+            <span style="
+                color:#22c55e;
+                font-weight:bold;
+            ">
+                🟢 Delivered
+            </span>
+
+        {% elif order.status == "Cancelled" %}
+
+            <span style="
+                color:#ef4444;
+                font-weight:bold;
+            ">
+                🔴 Cancelled
+            </span>
+
+        {% else %}
+
+            {{ order.status }}
+
+        {% endif %}
+
     </p>
+
+
+    <!-- PAYMENT STATUS -->
 
     <p>
         <strong>Payment Status:</strong>
-        {{ order.payment_status }}
+
+        {% if order.payment_status == "Paid" %}
+
+            <span style="
+                color:#22c55e;
+                font-weight:bold;
+            ">
+                🟢 Paid
+            </span>
+
+        {% elif order.payment_status == "Pending" %}
+
+            <span style="
+                color:#f59e0b;
+                font-weight:bold;
+            ">
+                🟡 Pending
+            </span>
+
+        {% elif order.payment_status == "Failed" %}
+
+            <span style="
+                color:#ef4444;
+                font-weight:bold;
+            ">
+                🔴 Failed
+            </span>
+
+        {% else %}
+
+            {{ order.payment_status }}
+
+        {% endif %}
+
+    </p>
+
+    <p>
+
+        <strong>Payment Method:</strong>
+
+        {% if order.payment_method == "COD" %}
+
+            Cash on Delivery
+
+        {% elif order.payment_method == "ONLINE" %}
+
+            Online Payment
+
+        {% else %}
+
+            {{ order.payment_method }}
+
+        {% endif %}
+
     </p>
 
 </div>
@@ -45,18 +155,161 @@ Order #{{ order.id }} | Forge & Hide
     border-radius:10px;
     border:1px solid #333;
 ">
+<!-- =========================
+     ORDER TIMELINE
+========================= -->
+
+<div style="
+    margin-top:30px;
+    background:#1a1a1a;
+    padding:30px;
+    border-radius:10px;
+    border:1px solid #333;
+">
+
+    <h2>Order Journey</h2>
+
+    <div style="
+        margin-top:30px;
+        display:flex;
+        justify-content:space-between;
+        align-items:flex-start;
+        gap:10px;
+        position:relative;
+    ">
+
+        <!-- PENDING -->
+
+        <div style="
+            text-align:center;
+            flex:1;
+        ">
+
+            <div style="
+                font-size:28px;
+            ">
+                {% if order.status in ["Pending", "Processing", "Shipped", "Delivered"] %}
+                    🟢
+                {% else %}
+                    ⚪
+                {% endif %}
+            </div>
+
+            <strong>
+                Pending
+            </strong>
+
+        </div>
+
+
+        <!-- PROCESSING -->
+
+        <div style="
+            text-align:center;
+            flex:1;
+        ">
+
+            <div style="
+                font-size:28px;
+            ">
+                {% if order.status in ["Processing", "Shipped", "Delivered"] %}
+                    🟢
+                {% else %}
+                    ⚪
+                {% endif %}
+            </div>
+
+            <strong>
+                Processing
+            </strong>
+
+        </div>
+
+
+        <!-- SHIPPED -->
+
+        <div style="
+            text-align:center;
+            flex:1;
+        ">
+
+            <div style="
+                font-size:28px;
+            ">
+                {% if order.status in ["Shipped", "Delivered"] %}
+                    🟢
+                {% else %}
+                    ⚪
+                {% endif %}
+            </div>
+
+            <strong>
+                Shipped
+            </strong>
+
+        </div>
+
+
+        <!-- DELIVERED -->
+
+        <div style="
+            text-align:center;
+            flex:1;
+        ">
+
+            <div style="
+                font-size:28px;
+            ">
+                {% if order.status == "Delivered" %}
+                    🟢
+                {% else %}
+                    ⚪
+                {% endif %}
+            </div>
+
+            <strong>
+                Delivered
+            </strong>
+
+        </div>
+
+    </div>
+
+
+    <!-- CANCELLED -->
+
+    {% if order.status == "Cancelled" %}
+
+    <div style="
+        margin-top:30px;
+        padding:15px;
+        background:#2a1111;
+        border:1px solid #7f1d1d;
+        border-radius:8px;
+        color:#ef4444;
+        font-weight:bold;
+        text-align:center;
+    ">
+        🔴 This order has been cancelled.
+    </div>
+
+    {% endif %}
+
+</div>
 
     <h2>Products</h2>
 
     {% for item in order.items %}
 
-    <div style="
-        display:flex;
-        align-items:center;
-        gap:25px;
-        padding:20px 0;
-        border-bottom:1px solid #333;
-    ">
+<div style="
+    display:flex;
+    align-items:center;
+    gap:25px;
+    padding:20px 0;
+    border-bottom:1px solid #333;
+">
+
+    {% if item.product %}
 
         {% if item.product.image %}
 
@@ -67,6 +320,7 @@ Order #{{ order.id }} | Forge & Hide
             ) }}"
             width="120"
             style="border-radius:8px;"
+            alt="{{ item.product.name }}"
         >
 
         {% endif %}
@@ -94,9 +348,36 @@ Order #{{ order.id }} | Forge & Hide
 
         </div>
 
-    </div>
+    {% else %}
 
-    {% endfor %}
+        <div>
+
+            <h3>
+                Product No Longer Available
+            </h3>
+
+            <p>
+                Quantity:
+                {{ item.quantity }}
+            </p>
+
+            <p>
+                Price:
+                ₹ {{ item.price }}
+            </p>
+
+            <p>
+                Item Total:
+                ₹ {{ item.price * item.quantity }}
+            </p>
+
+        </div>
+
+    {% endif %}
+
+</div>
+
+{% endfor %}
 
     <h2 style="margin-top:30px;">
         Grand Total:

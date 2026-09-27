@@ -1,0 +1,193 @@
+{% extends "base.html" %}
+
+{% block title %}
+Online Payment | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div style="
+    max-width:600px;
+    margin:60px auto;
+    padding:40px;
+    background:#181818;
+    border-radius:12px;
+    text-align:center;
+">
+
+    <h1 class="section-title">
+        Online Payment
+    </h1>
+
+    <p style="
+        color:#aaa;
+        margin-top:25px;
+    ">
+        Your payment will be processed securely.
+    </p>
+
+    <div style="
+        margin:30px 0;
+        padding:25px;
+        background:#111;
+        border-radius:8px;
+    ">
+
+        <p>
+            <strong>Payment Method:</strong>
+            Online Payment
+        </p>
+        
+        <p>
+            <strong>Order ID:</strong>
+            #{{ order_id }}
+        </p>
+
+        <p style="
+            font-size:24px;
+            color:#d4af37;
+            font-weight:bold;
+        ">
+            ₹ {{ total }}
+        </p>
+
+    </div>
+
+    <p style="
+    color:#888;
+    margin-top:20px;
+">
+    Your order is currently awaiting payment.
+</p>
+
+<p style="
+    color:#777;
+    font-size:14px;
+    margin-top:10px;
+">
+    If you leave this page without completing payment,
+    your order will remain pending and you can retry payment later.
+</p>
+    
+
+    <button
+    id="rzp-button"
+    type="button"
+    class="hero-button"
+    style="
+        margin-top:25px;
+        width:100%;
+    "
+>
+    Continue to Payment
+</button>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+
+    document.getElementById("rzp-button").onclick = function(e) {
+
+        var options = {
+
+            "key": "{{ razorpay_key_id }}",
+
+            "amount": "{{ total * 100 }}",
+
+            "currency": "INR",
+
+            "name": "Forge & Hide",
+
+            "description": "Leather Goods Order",
+
+            "order_id": "{{ razorpay_order_id }}",
+
+            "handler": function(response) {
+
+    fetch(
+        "{{ url_for('verify_razorpay_payment') }}",
+        {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_signature: response.razorpay_signature
+            })
+        }
+    )
+    .then(function(result) {
+        return result.json();
+    })
+    .then(function(data) {
+
+        if (data.success) {
+
+            window.location.href =
+                "{{ url_for('order_confirmation', order_id=order_id) }}";
+
+        } else {
+
+            alert(
+                data.message ||
+                "Payment verification failed."
+            );
+
+        }
+
+    })
+    .catch(function(error) {
+
+        console.error(error);
+
+        alert(
+            "Something went wrong while verifying payment."
+        );
+
+    });
+
+},
+
+            "theme": {
+                "color": "#000000"
+            }
+
+        };
+
+        var rzp = new Razorpay(options);
+
+rzp.on(
+    "payment.failed",
+    function(response) {
+
+        alert(
+            "Payment failed. Your order is still pending. You can retry payment."
+        );
+
+    }
+);
+
+rzp.open();
+
+e.preventDefault();
+    };
+
+</script>
+    
+    <a href="{{ url_for('checkout') }}">
+
+        <button
+            type="button"
+            class="hero-button"
+            style="margin-top:25px;"
+        >
+            ← Back to Checkout
+        </button>
+
+    </a>
+
+</div>
+
+{% endblock %}

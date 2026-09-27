@@ -1,36 +1,257 @@
 {% extends "base.html" %}
 
+{% block title %}
+Admin Dashboard | Forge & Hide
+{% endblock %}
+
 {% block content %}
 
 <div class="container">
 
     <h1>Admin Dashboard</h1>
 
-    <p>Welcome to Forge & Hide Admin Panel.</p>
+    <h2>Store Overview</h2>
 
-    <hr><br>
+<div style="
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(180px, 1fr));
+    gap:15px;
+    margin:25px 0 35px;
+">
 
-    <a href="{{ url_for('products') }}">
-        📦 Manage Products
-    </a>
+    <div style="
+        background:#1a1a1a;
+        border:1px solid #333;
+        padding:20px;
+        border-radius:10px;
+    ">
+        <h3>📦 Products</h3>
+        <p style="font-size:28px;">
+            {{ total_products }}
+        </p>
+    </div>
 
-    <br><br>
 
-    <a href="{{ url_for('add_product') }}">
-        ➕ Add Product
-    </a>
+    <div style="
+        background:#1a1a1a;
+        border:1px solid #333;
+        padding:20px;
+        border-radius:10px;
+    ">
+        <h3>📋 Total Orders</h3>
+        <p style="font-size:28px;">
+            {{ total_orders }}
+        </p>
+    </div>
 
-    <br><br>
 
-    <a href="{{ url_for('categories') }}">
-        🏷️ Manage Categories
-    </a>
+    <div style="
+        background:#1a1a1a;
+        border:1px solid #333;
+        padding:20px;
+        border-radius:10px;
+    ">
+        <h3>⏳ Pending Orders</h3>
+        <p style="font-size:28px;">
+            {{ pending_orders }}
+        </p>
+    </div>
 
-    <br><br>
 
-    <a href="{{ url_for('logout') }}">
-        🚪 Logout
-    </a>
+    <div style="
+        background:#1a1a1a;
+        border:1px solid #333;
+        padding:20px;
+        border-radius:10px;
+    ">
+        <h3>👥 Customers</h3>
+        <p style="font-size:28px;">
+            {{ total_customers }}
+        </p>
+    </div>
+
+    <div style="
+        background:#1a1a1a;
+        border:1px solid #333;
+        padding:20px;
+        border-radius:10px;
+">
+    <h3>🏷️ Categories</h3>
+
+    <p style="font-size:28px;">
+        {{ total_categories }}
+    </p>
+    </div>
+
+
+<div style="
+    background:#1a1a1a;
+    border:1px solid #333;
+    padding:20px;
+    border-radius:10px;
+">
+    <h3>⚠️ Low Stock</h3>
+
+    <p style="font-size:28px;">
+        {{ low_stock_products }}
+    </p>
+</div>
+
+</div>
+
+
+
+    <p>
+        Welcome to Forge & Hide Admin Panel.
+        Choose what you want to manage.
+    </p>
+
+    <h2>Recent Orders</h2>
+
+{% if recent_orders %}
+
+<div style="
+    overflow-x:auto;
+    margin:20px 0 35px;
+">
+
+    <table style="
+        width:100%;
+        border-collapse:collapse;
+    ">
+
+        <thead>
+
+            <tr style="
+                border-bottom:1px solid #444;
+            ">
+
+                <th style="padding:12px; text-align:left;">
+                    Order
+                </th>
+
+                <th style="padding:12px; text-align:left;">
+                    Customer
+                </th>
+
+                <th style="padding:12px; text-align:left;">
+                    Total
+                </th>
+
+                <th style="padding:12px; text-align:left;">
+                    Status
+                </th>
+
+                <th style="padding:12px; text-align:left;">
+                    Action
+                </th>
+
+            </tr>
+
+        </thead>
+
+        <tbody>
+
+            {% for order in recent_orders %}
+
+            <tr style="
+                border-bottom:1px solid #333;
+            ">
+
+                <td style="padding:12px;">
+                    #{{ order.id }}
+                </td>
+
+                <td style="padding:12px;">
+                    {{ order.shipping_name }}
+                </td>
+
+                <td style="padding:12px;">
+                    ₹ {{ order.total_amount }}
+                </td>
+
+                <td style="padding:12px;">
+                    {{ order.status }}
+                </td>
+
+                <td style="padding:12px;">
+
+                    <a href="{{ url_for(
+                        'admin_order_details',
+                        order_id=order.id
+                    ) }}">
+                        View
+                    </a>
+
+                </td>
+
+            </tr>
+
+            {% endfor %}
+
+        </tbody>
+
+    </table>
+
+</div>
+
+{% else %}
+
+<p>
+    No orders yet.
+</p>
+
+{% endif %}
+
+    <hr>
+
+    <h3>Store Management</h3>
+
+    <p>
+        <a href="{{ url_for('products') }}">
+            📦 Manage Products
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('add_product') }}">
+            ➕ Add Product
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('categories') }}">
+            🏷️ Manage Categories
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('admin_orders') }}">
+            📋 Manage Orders
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('admin_customers') }}">
+            👥 View Customers
+        </a>
+    </p>
+
+    <p>
+        <a href="{{ url_for('admin_inventory') }}">
+            📊 Inventory
+        </a>
+    </p>
+
+    <hr>
+
+    <h2>Account</h2>
+
+    <p>
+        <a href="{{ url_for('logout') }}">
+            🚪 Logout
+        </a>
+    </p>
 
 </div>
 

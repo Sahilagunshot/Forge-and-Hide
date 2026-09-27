@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}
+Customers | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div class="container">
+
+    <h1>Customers</h1>
+
+    <p>
+        View customers who have registered on the store.
+    </p>
+
+    {% if customers %}
+
+    <div style="overflow-x:auto; margin-top:25px;">
+
+        <table style="
+            width:100%;
+            border-collapse:collapse;
+        ">
+
+            <thead>
+                <tr>
+                    <th style="padding:12px; text-align:left;">
+                        Customer
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Email
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Phone
+                    </th>
+
+                    <th style="padding:12px; text-align:left;">
+                        Customer ID
+                    </th>
+                </tr>
+            </thead>
+
+            <tbody>
+
+                {% for customer in customers %}
+
+                <tr style="border-top:1px solid #333;">
+
+                    <td style="padding:12px;">
+                        {{ customer.first_name }}
+                        {{ customer.last_name }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        {{ customer.email }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        {{ customer.phone }}
+                    </td>
+
+                    <td style="padding:12px;">
+                        #{{ customer.id }}
+                    </td>
+
+                </tr>
+
+                {% endfor %}
+
+            </tbody>
+
+        </table>
+
+    </div>
+
+    {% else %}
+
+        <p style="margin-top:25px;">
+            No customers found.
+        </p>
+
+    {% endif %}
+
+</div>
+
+{% endblock %}

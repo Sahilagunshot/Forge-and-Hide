@@ -120,6 +120,10 @@ Admin Products | Forge & Hide
                     </th>
 
                     <th>
+                        Status
+                    </th>
+
+                    <th>
                         Actions
                     </th>
 
@@ -176,11 +180,44 @@ Admin Products | Forge & Hide
 
 
                     <td>
-                        {{ product.stock }}
-                    </td>
+    {{ product.stock }}
+</td>
 
+<td>
 
-                    <td>
+    {% if product.is_active %}
+
+        <span style="
+            display:inline-block;
+            padding:6px 12px;
+            border-radius:20px;
+            background:#166534;
+            color:white;
+            font-size:13px;
+            font-weight:bold;
+        ">
+            ACTIVE
+        </span>
+
+    {% else %}
+
+        <span style="
+            display:inline-block;
+            padding:6px 12px;
+            border-radius:20px;
+            background:#7f1d1d;
+            color:white;
+            font-size:13px;
+            font-weight:bold;
+        ">
+            ARCHIVED
+        </span>
+
+    {% endif %}
+
+</td>
+
+<td>
 
                         <!-- EDIT -->
 
@@ -207,7 +244,45 @@ Admin Products | Forge & Hide
                             Gallery
                         </a>
 
+                        <!-- ARCHIVE / UNARCHIVE -->
 
+{% if product.is_active %}
+
+<a
+    href="{{ url_for(
+        'archive_product',
+        id=product.id
+    ) }}"
+    class="admin-btn"
+    style="background:#92400e;"
+    onclick="
+        return confirm(
+            'Archive {{ product.name }}?'
+        );
+    "
+>
+    Archive
+</a>
+
+{% else %}
+
+<a
+    href="{{ url_for(
+        'unarchive_product',
+        id=product.id
+    ) }}"
+    class="admin-btn"
+    style="background:#15803d;"
+    onclick="
+        return confirm(
+            'Restore {{ product.name }}?'
+        );
+    "
+>
+    Unarchive
+</a>
+
+{% endif %}
                         <!-- DELETE -->
 
                         <a
