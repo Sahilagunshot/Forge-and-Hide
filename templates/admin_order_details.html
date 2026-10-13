@@ -249,6 +249,8 @@ Order #{{ order.id }} | Admin | Forge & Hide
             action="{{ url_for('admin_update_order', order_id=order.id) }}"
         >
 
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <!-- ORDER STATUS -->
 
             <div style="margin-top:20px;">

@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ title }} | Forge &amp; Hide</title>
+    <style>
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #111;
+            color: #f3eee6;
+            font-family: Georgia, "Times New Roman", serif;
+            text-align: center;
+            padding: 24px;
+        }
+        .box { max-width: 480px; }
+        .code {
+            font-size: 84px;
+            margin: 0;
+            color: #b08d57;
+            letter-spacing: 4px;
+        }
+        h1 { font-size: 26px; margin: 8px 0 12px; font-weight: normal; }
+        p { color: #cfc7ba; line-height: 1.6; margin: 0 0 28px; }
+        a {
+            display: inline-block;
+            padding: 12px 28px;
+            border: 1px solid #b08d57;
+            color: #b08d57;
+            text-decoration: none;
+            letter-spacing: 1px;
+        }
+        a:hover { background: #b08d57; color: #111; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <p class="code">{{ code }}</p>
+        <h1>{{ title }}</h1>
+        <p>{{ message }}</p>
+        <a href="{{ url_for('home') }}">Back to Forge &amp; Hide</a>
+    </div>
+</body>
+</html>

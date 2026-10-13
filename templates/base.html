@@ -4,14 +4,19 @@
 <head>
 
     <meta charset="UTF-8">
-
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>
-        {% block title %}
-        Forge & Hide
-        {% endblock %}
+        {% block title %}Forge &amp; Hide{% endblock %}
     </title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Jost:wght@300;400;500&display=swap"
+        rel="stylesheet"
+    >
 
     <link
         rel="stylesheet"
@@ -21,175 +26,58 @@
 </head>
 
 
-<body>
+<body class="{% block body_class %}{% endblock %}">
 
 
 <!-- =========================
-     NAVIGATION
+     HEADER
 ========================= -->
 
-<nav>
+<header class="site-header">
 
-    <div class="logo">
+    <nav class="site-nav">
 
-        <a href="/">
-            Forge & Hide
-        </a>
+        <ul class="nav-left">
 
-    </div>
+            <li><a href="{{ url_for('shop') }}">Shop</a></li>
 
+            <li><a href="/about">About</a></li>
 
-    <ul>
+            <li><a href="/contact">Contact</a></li>
 
-        <li>
-            <a href="/">
-                Home
-            </a>
-        </li>
-
-        <li>
-            <a href="/shop">
-                Shop
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                Collections
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                Journal
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                About
-            </a>
-        </li>
-
-        <li>
-            <a href="#">
-                Contact
-            </a>
-        </li>
+        </ul>
 
 
-        <!-- =========================
-             CUSTOMER ACCOUNT
-        ========================= -->
+        <div class="logo">
+            <a href="/">Forge &amp; Hide</a>
+        </div>
 
-        {% if session.get("customer_id") %}
+
+        <ul class="nav-right">
+
+            {% if session.get("customer_id") %}
+
+                <li><a href="{{ url_for('my_orders') }}">My Orders</a></li>
+
+                <li><a href="/customer/logout">Logout</a></li>
+
+            {% else %}
+
+                <li><a href="/login">Login</a></li>
+
+            {% endif %}
 
             <li>
-                <a href="#">
-                    Hi, {{ session.get("customer_name") }}
+                <a href="{% if session.get('customer_id') %}{{ url_for('cart') }}{% else %}/login{% endif %}">
+                    Cart{% if cart_count > 0 %}<span class="cart-count">({{ cart_count }})</span>{% endif %}
                 </a>
             </li>
 
-            <li>
-                <a href="/customer/logout">
-                    Logout
-                </a>
-            </li>
+        </ul>
 
-        {% else %}
+    </nav>
 
-            <li>
-                <a href="/login">
-                    Login
-                </a>
-            </li>
-
-        {% endif %}
-
-    </ul>
-
-
-    <!-- =========================
-         NAVIGATION ICONS
-    ========================= -->
-
-    <div class="nav-icons">
-
-        <a
-            href="#"
-            title="Search"
-        >
-            🔍
-        </a>
-
-
-        <a
-            href="#"
-            title="Wishlist"
-        >
-            ❤
-        </a>
-
-
-        {% if session.get("customer_id") %}
-
-            <!-- CART -->
-
-            <a href="{{ url_for('cart') }}" title="Shopping Cart" style="position:relative; display:inline-block;">
-
-    🛒
-
-    {% if cart_count > 0 %}
-
-        <span style="
-            position:absolute;
-            top:-10px;
-            right:-12px;
-            background:#d4af37;
-            color:#111;
-            width:20px;
-            height:20px;
-            border-radius:50%;
-            font-size:12px;
-            font-weight:bold;
-            display:flex;
-            align-items:center;
-            justify-content:center;
-        ">
-            {{ cart_count }}
-        </span>
-
-    {% endif %}
-
-</a>
-
-
-            <!-- MY ORDERS -->
-
-            <a
-                href="{{ url_for('my_orders') }}"
-                title="My Orders"
-            >
-                📦
-            </a>
-
-        {% else %}
-
-            <!-- CART WHEN NOT LOGGED IN -->
-
-            <a
-                href="/login"
-                title="Login to Shopping Cart"
-            >
-                🛒
-            </a>
-
-        {% endif %}
-
-    </div>
-
-</nav>
-
+</header>
 
 
 <!-- =========================
@@ -205,9 +93,7 @@
             {% for message in messages %}
 
                 <div class="flash-message">
-
                     {{ message }}
-
                 </div>
 
             {% endfor %}
@@ -217,7 +103,6 @@
     {% endif %}
 
 {% endwith %}
-
 
 
 <!-- =========================
@@ -233,7 +118,6 @@
 </main>
 
 
-
 <!-- =========================
      FOOTER
 ========================= -->
@@ -242,14 +126,9 @@
 
     <div class="footer-container">
 
-
-        <!-- BRAND -->
-
         <div>
 
-            <h2>
-                Forge & Hide
-            </h2>
+            <h2>Forge &amp; Hide</h2>
 
             <p>
                 Handcrafted luxury leather goods made
@@ -259,70 +138,38 @@
         </div>
 
 
-        <!-- QUICK LINKS -->
-
         <div>
 
-            <h3>
-                Quick Links
-            </h3>
+            <h3>Explore</h3>
 
-            <p>
-                <a href="/">
-                    Home
-                </a>
-            </p>
-
-            <p>
-                <a href="/shop">
-                    Shop
-                </a>
-            </p>
-
-            <p>
-                <a href="#">
-                    About
-                </a>
-            </p>
-
-            <p>
-                <a href="#">
-                    Contact
-                </a>
-            </p>
+            <p><a href="/">Home</a></p>
+            <p><a href="{{ url_for('shop') }}">Shop</a></p>
+            <p><a href="/about">About</a></p>
+            <p><a href="/contact">Contact</a></p>
+            <p><a href="/privacy-policy">Privacy Policy</a></p>
+            <p><a href="/terms-and-conditions">Terms and Conditions</a></p>
+            <p><a href="/refund-policy">Refund Policy</a></p>
+            <p><a href="/shipping-policy">Shipping Policy</a></p>
 
         </div>
 
 
-        <!-- CONTACT -->
-
         <div>
 
-            <h3>
-                Contact
-            </h3>
+            <h3>Contact</h3>
 
-            <p>
-                Mumbai, India
-            </p>
-
-            <p>
-                info@forgeandhide.com
-            </p>
+            <p>{{ business.address }}</p>
+            <p>{{ business.phone }}</p>
+            <p>{{ business.email }}</p>
 
         </div>
 
     </div>
 
-
     <hr>
 
-
     <p class="copyright">
-
-        © 2026 Forge & Hide.
-        All Rights Reserved.
-
+        &copy; 2026 Forge &amp; Hide. All Rights Reserved.
     </p>
 
 </footer>

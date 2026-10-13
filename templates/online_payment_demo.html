@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+
+{% block title %}
+Payment | Forge & Hide
+{% endblock %}
+
+{% block content %}
+
+<div style="
+    max-width:600px;
+    margin:60px auto;
+    padding:40px;
+    background:#181818;
+    border-radius:12px;
+    text-align:center;
+">
+
+    <h1 class="section-title">
+        Payment
+    </h1>
+
+    <p style="
+        color:#aaa;
+        margin-top:25px;
+    ">
+        Payment gateway will be connected here.
+    </p>
+
+    <div style="
+        margin-top:30px;
+        padding:25px;
+        background:#111;
+        border-radius:8px;
+    ">
+
+        <h2 style="color:#d4af37;">
+            Secure Online Payment
+        </h2>
+
+        <p style="
+            color:#aaa;
+            margin-top:15px;
+        ">
+            This is currently a payment gateway placeholder.
+        </p>
+
+    </div>
+
+    <a href="{{ url_for('checkout') }}">
+
+        <button
+            type="button"
+            class="hero-button"
+            style="margin-top:25px;"
+        >
+            ← Back to Checkout
+        </button>
+
+    </a>
+
+</div>
+
+{% endblock %}

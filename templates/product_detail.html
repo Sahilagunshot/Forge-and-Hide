@@ -1,259 +1,196 @@
 {% extends "base.html" %}
 
 {% block title %}
-{{ product.name }} | Forge & Hide
+{{ product.name }} | Forge &amp; Hide
 {% endblock %}
 
 {% block content %}
 
-<div class="product-image">
+{% set gallery = product.images|sort(attribute='sort_order') %}
+{% set all_images = [] %}
+{% if product.image %}{% set _ = all_images.append(product.image) %}{% endif %}
+{% for g in gallery %}{% set _ = all_images.append(g.image) %}{% endfor %}
 
-    {% if product.image %}
 
-    <img
-        id="mainProductImage"
-        src="{{ url_for(
-            'static',
-            filename='uploads/' + product.image
-        ) }}"
-        alt="{{ product.name }}"
-    >
+<div class="crumbs">
 
+    <a href="{{ url_for('shop') }}">Shop</a>
+
+    {% if product.category %}
+    &nbsp;/&nbsp;
+    <a href="{{ url_for('shop', category=product.category.slug) }}">{{ product.category.name }}</a>
     {% endif %}
 
 </div>
 
-{% if product.images %}
 
-<div class="product-gallery-thumbnails">
+<section class="pd">
 
-    {% for image in product.images %}
+    <!-- ===== PHOTOS ===== -->
 
-    <div
-        class="gallery-thumbnail"
-        data-image="{{ url_for('static', filename='uploads/' + image.image) }}"
-        onclick="changeProductImage(this.dataset.image)"
-    >
+    <div class="pd-gallery">
 
-        <img
-            src="{{ url_for('static', filename='uploads/' + image.image) }}"
-            alt="{{ product.name }}"
-        >
+        <div class="pd-main">
+
+            {% if all_images %}
+            <img
+                id="pdMain"
+                src="{{ url_for('static', filename='uploads/' + all_images[0]) }}"
+                alt="{{ product.name }}"
+            >
+            {% endif %}
+
+        </div>
+
+        {% if all_images|length > 1 %}
+
+        <div class="pd-thumbs">
+
+            {% for img in all_images %}
+
+            <button
+                type="button"
+                class="pd-thumb {% if loop.first %}active{% endif %}"
+                data-src="{{ url_for('static', filename='uploads/' + img) }}"
+                onclick="setMain(this)"
+            >
+                <img
+                    src="{{ url_for('static', filename='uploads/' + img) }}"
+                    alt="{{ product.name }}"
+                >
+            </button>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
 
     </div>
 
-    {% endfor %}
 
-</div>
+    <!-- ===== DETAILS ===== -->
 
-{% endif %}
-
-    <div class="product-content">
+    <div class="pd-info">
 
         {% if product.is_bestseller %}
-<div class="bestseller-badge">
+        <span class="pd-tag">Bestseller</span>
+        {% endif %}
 
-★ Bestseller
+        <h1>{{ product.name }}</h1>
 
-</div>
-{% endif %}
+        <div class="pd-price">₹ {{ product.price }}</div>
 
-<h1>{{ product.name }}</h1>
+        {% if product.short_description %}
+        <p class="pd-lead">{{ product.short_description }}</p>
+        {% endif %}
 
-<p class="short-description">
+        {% if product.stock > 0 %}
 
-{{ product.short_description }}
+            {% if product.stock <= 5 %}
+            <div class="pd-stock low">Only {{ product.stock }} left</div>
+            {% else %}
+            <div class="pd-stock">In stock</div>
+            {% endif %}
 
-</p>
+        {% else %}
 
-<h2>
+            <div class="pd-stock low">Out of stock</div>
 
-₹ {{ product.price }}
+        {% endif %}
 
-</h2>
+        <div class="pd-actions">
 
-<ul class="product-specs">
+            {% if product.stock > 0 %}
 
-<li><strong>Leather :</strong> {{ product.leather_type }}</li>
+            <a class="hero-button" href="{{ url_for('add_to_cart', product_id=product.id) }}">
+                Add to Cart
+            </a>
 
-<li><strong>Hardware :</strong> {{ product.hardware }}</li>
+            {% else %}
 
-<li><strong>Lining :</strong> {{ product.lining }}</li>
+            <span class="hero-button pd-disabled">Out of Stock</span>
 
-<li><strong>Dimensions :</strong> {{ product.dimensions }}</li>
+            {% endif %}
 
-<li><strong>Weight :</strong> {{ product.weight }}</li>
+            <a class="hero-button btn-outline" href="/contact">
+                Enquire About Customisation
+            </a>
 
-<li><strong>Made In :</strong> {{ product.made_in }}</li>
+        </div>
 
-<li><strong>Warranty :</strong> {{ product.warranty }}</li>
-
-</ul>
-
-<div class="product-features">
-
-    <h3>Highlights</h3>
-
-<ul>
-
-```
-<li>✔ Premium Full Grain Leather</li>
-
-<li>✔ Premium YKK Hardware</li>
-
-<li>✔ Handcrafted in India</li>
-
-<li>✔ Built for Lifetime Use</li>
-
-<li>✔ Luxury Finish & Premium Stitching</li>
-```
-
-</ul>
-
-{% if product.long_description %}
-
-<h3>Product Description</h3>
-
-{{ product.long_description }}
-
-{% endif %}
-
-{% if product.care %}
-
-<h3>Care Instructions</h3>
-
-{{ product.care }}
-
-{% endif %}
-
-
-</div>
-
-<div class="product-specs">
-
-    <h3>Specifications</h3>
-
-    <table>
-
-<tr>
-<td>Leather</td>
-<td>{{ product.leather_type }}</td>
-</tr>
-
-<tr>
-<td>Hardware</td>
-<td>{{ product.hardware }}</td>
-</tr>
-
-<tr>
-<td>Lining</td>
-<td>{{ product.lining }}</td>
-</tr>
-
-<tr>
-<td>Dimensions</td>
-<td>{{ product.dimensions }}</td>
-</tr>
-
-<tr>
-<td>Weight</td>
-<td>{{ product.weight }}</td>
-</tr>
-
-<tr>
-<td>Made In</td>
-<td>{{ product.made_in }}</td>
-</tr>
-
-<tr>
-<td>Warranty</td>
-<td>{{ product.warranty }}</td>
-</tr>
-
-</table>
-
-</div>
-        <p>
-
-            <strong>Stock :</strong>
-
-            {{ product.stock }}
-
+        <p class="pd-note">
+            Made-to-order pieces take {{ business.production_time }} to prepare.
+            After dispatch, delivery takes {{ business.delivery_time }}.
+            Free shipping within India.
         </p>
-
-        <br>
-
-        <a href="{{ url_for('add_to_cart', product_id=product.id) }}">
-    {% if product.stock > 0 %}
-
-<p style="
-    margin-top:15px;
-    color:#aaa;
-">
-    {% if product.stock <= 5 %}
-        Only {{ product.stock }} left in stock
-    {% else %}
-        In Stock
-    {% endif %}
-</p>
-
-{% else %}
-
-<p style="
-    margin-top:15px;
-    color:#dc2626;
-    font-weight:bold;
-">
-    Out of Stock
-</p>
-
-{% endif %}
-
-{% if product.stock > 0 %}
-
-<button
-    type="submit"
-    class="hero-button"
->
-    Add To Cart
-</button>
-
-{% else %}
-
-<button
-    type="button"
-    class="hero-button"
-    disabled
-    style="
-        opacity:0.5;
-        cursor:not-allowed;
-    "
->
-    Out of Stock
-</button>
-
-{% endif %}
-
-</a>
 
     </div>
 
-</div>
+</section>
+
+
+<!-- ===== DESCRIPTION, SPECS, CARE ===== -->
+
+<section class="pd-details">
+
+    {% if product.long_description %}
+    <div class="pd-section">
+        <h2>Description</h2>
+        <div class="pd-text">{{ product.long_description }}</div>
+    </div>
+    {% elif product.description %}
+    <div class="pd-section">
+        <h2>Description</h2>
+        <div class="pd-text">{{ product.description }}</div>
+    </div>
+    {% endif %}
+
+    {% if product.leather_type or product.hardware or product.lining or product.dimensions or product.weight or product.made_in or product.warranty %}
+    <div class="pd-section">
+
+        <h2>Specifications</h2>
+
+        <table class="pd-table">
+
+            {% if product.leather_type %}<tr><td>Leather</td><td>{{ product.leather_type }}</td></tr>{% endif %}
+            {% if product.hardware %}<tr><td>Hardware</td><td>{{ product.hardware }}</td></tr>{% endif %}
+            {% if product.lining %}<tr><td>Lining</td><td>{{ product.lining }}</td></tr>{% endif %}
+            {% if product.dimensions %}<tr><td>Dimensions</td><td>{{ product.dimensions }}</td></tr>{% endif %}
+            {% if product.weight %}<tr><td>Weight</td><td>{{ product.weight }}</td></tr>{% endif %}
+            {% if product.made_in %}<tr><td>Made in</td><td>{{ product.made_in }}</td></tr>{% endif %}
+            {% if product.warranty %}<tr><td>Warranty</td><td>{{ product.warranty }}</td></tr>{% endif %}
+
+        </table>
+
+    </div>
+    {% endif %}
+
+    {% if product.care %}
+    <div class="pd-section">
+        <h2>Care</h2>
+        <div class="pd-text">{{ product.care }}</div>
+    </div>
+    {% endif %}
+
+</section>
+
 
 <script>
 
-function changeProductImage(imageUrl) {
+function setMain(button) {
 
-    const mainImage = document.getElementById(
-        "mainProductImage"
-    );
+    var main = document.getElementById("pdMain");
 
-    if (mainImage) {
-
-        mainImage.src = imageUrl;
-
+    if (main) {
+        main.src = button.dataset.src;
     }
 
+    document.querySelectorAll(".pd-thumb").forEach(function (b) {
+        b.classList.remove("active");
+    });
+
+    button.classList.add("active");
 }
 
 </script>

@@ -1,239 +1,115 @@
 {% extends "base.html" %}
 
 {% block title %}
-Checkout | Forge & Hide
+Checkout | Forge &amp; Hide
 {% endblock %}
 
 {% block content %}
 
-<div style="max-width:1000px;margin:40px auto;padding:20px;">
-
-    <h1 class="section-title">
-        Checkout
-    </h1>
-
-    <div style="
-        display:grid;
-        grid-template-columns:1fr 1fr;
-        gap:40px;
-        margin-top:40px;
-    ">
-
-        <!-- SHIPPING DETAILS -->
-
-        <div style="
-            background:#181818;
-            padding:30px;
-            border-radius:10px;
-        ">
-
-            <h2 style="color:#d4af37;">
-                Shipping Details
-            </h2>
-
-            <form method="POST">
-
-                <label>Full Name</label>
-
-                <input
-                    type="text"
-                    name="shipping_name"
-                    required
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                >
-
-                <label>Phone Number</label>
-
-                <input
-                    type="text"
-                    name="shipping_phone"
-                    required
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                >
-
-                <label>Address</label>
-
-                <textarea
-                    name="shipping_address"
-                    required
-                    rows="4"
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                ></textarea>
-
-                <label>City</label>
-
-                <input
-                    type="text"
-                    name="city"
-                    required
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                >
-
-                <label>State</label>
-
-                <input
-                    type="text"
-                    name="state"
-                    required
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                >
-
-                <label>Pincode</label>
-
-                <input
-                    type="text"
-                    name="pincode"
-                    required
-                    style="width:100%;padding:12px;margin:10px 0 20px;"
-                >
-
-         <!-- =========================
-         PAYMENT METHOD
-         ========================= -->
-
-<div style="margin-top:10px;">
-
-    <label>
-        <strong>Payment Method</strong>
-    </label>
-
-    <select
-        name="payment_method"
-        required
-        style="
-            width:100%;
-            padding:12px;
-            margin:10px 0 20px;
-            background:#111;
-            color:white;
-            border:1px solid #444;
-            border-radius:5px;
-        "
-    >
-
-        <option value="">
-            Select Payment Method
-        </option>
-
-        <option value="COD">
-            Cash on Delivery
-        </option>
-
-        <option value="ONLINE">
-            Online Payment
-        </option>
-
-    </select>
-
+<div class="page-head">
+    <h1>Checkout</h1>
 </div>
 
-                <button
-                    type="submit"
-                    style="
-                        width:100%;
-                        background:#d4af37;
-                        color:#111;
-                        border:none;
-                        padding:15px;
-                        font-size:17px;
-                        font-weight:bold;
-                        cursor:pointer;
-                        border-radius:5px;
-                    "
-                >
-                    Place Order
-                </button>
+<div class="shell">
 
-            </form>
+    <div class="cart-layout">
 
-        </div>
+        <form method="POST">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <h2 class="form-title">Shipping Details</h2>
+
+            <div class="field">
+                <label for="shipping_name">Full Name</label>
+                <input type="text" id="shipping_name" name="shipping_name" required>
+            </div>
+
+            <div class="field">
+                <label for="shipping_phone">Phone Number</label>
+                <input type="text" id="shipping_phone" name="shipping_phone" required>
+            </div>
+
+            <div class="field">
+                <label for="shipping_address">Address</label>
+                <textarea id="shipping_address" name="shipping_address" rows="4" required></textarea>
+            </div>
+
+            <div class="field-row">
+
+                <div class="field">
+                    <label for="city">City</label>
+                    <input type="text" id="city" name="city" required>
+                </div>
+
+                <div class="field">
+                    <label for="state">State</label>
+                    <input type="text" id="state" name="state" required>
+                </div>
+
+            </div>
+
+            <div class="field">
+                <label for="pincode">Pincode</label>
+                <input type="text" id="pincode" name="pincode" required>
+            </div>
+
+            <div class="field">
+
+                <label for="payment_method">Payment Method</label>
+
+                <select id="payment_method" name="payment_method" required>
+                    <option value="">Select Payment Method</option>
+                    <option value="COD">Cash on Delivery</option>
+                    <option value="ONLINE">Online Payment</option>
+                </select>
+
+            </div>
+
+            <button type="submit" class="hero-button" style="width:100%;">
+                Place Order
+            </button>
+
+        </form>
 
 
-        <!-- ORDER SUMMARY -->
+        <aside class="summary">
 
-        <div style="
-            background:#181818;
-            padding:30px;
-            border-radius:10px;
-            height:max-content;
-        ">
-
-            <h2 style="color:#d4af37;">
-                Order Summary
-            </h2>
+            <h2>Order Summary</h2>
 
             {% for item in cart_items %}
 
-            <div style="
-                display:flex;
-                align-items:center;
-                gap:15px;
-                padding:15px 0;
-                border-bottom:1px solid #333;
-            ">
+            <div class="checkout-item">
 
                 {% if item.product.image %}
-
                 <img
-                    src="{{ url_for(
-                        'static',
-                        filename='uploads/' + item.product.image
-                    ) }}"
-                    style="
-                        width:80px;
-                        height:80px;
-                        object-fit:cover;
-                        border-radius:6px;
-                    "
+                    src="{{ url_for('static', filename='uploads/' + item.product.image) }}"
+                    alt="{{ item.product.name }}"
                 >
-
                 {% endif %}
 
-                <div style="flex:1;">
-
-                    <strong>
-                        {{ item.product.name }}
-                    </strong>
-
-                    <p style="margin:6px 0;color:#aaa;">
-
-                        Qty: {{ item.quantity }}
-
-                    </p>
-
+                <div>
+                    <div class="name">{{ item.product.name }}</div>
+                    <div class="meta">Qty: {{ item.quantity }}</div>
                 </div>
 
-                <strong>
-
-                    ₹ {{ item.product.price * item.quantity }}
-
-                </strong>
+                <strong>₹ {{ item.product.price * item.quantity }}</strong>
 
             </div>
 
             {% endfor %}
 
-
-            <div style="
-                display:flex;
-                justify-content:space-between;
-                margin-top:30px;
-                font-size:20px;
-            ">
-
-                <strong>
-                    Grand Total
-                </strong>
-
-                <strong style="color:#d4af37;">
-
-                    ₹ {{ total }}
-
-                </strong>
-
+            <div class="summary-line">
+                <span>Shipping</span>
+                <span>Free</span>
             </div>
 
-        </div>
+            <div class="summary-total">
+                <strong>Total</strong>
+                <strong>₹ {{ total }}</strong>
+            </div>
+
+        </aside>
 
     </div>
 

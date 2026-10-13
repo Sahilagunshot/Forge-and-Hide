@@ -33,7 +33,7 @@ Product Gallery | Forge & Hide
 
         <h3>Upload New Image</h3>
 
-        <form
+                <form
             method="POST"
             enctype="multipart/form-data"
             action="{{ url_for(
@@ -41,6 +41,8 @@ Product Gallery | Forge & Hide
                 id=product.id
             ) }}"
         >
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
             <input
                 type="file"
@@ -126,6 +128,8 @@ Product Gallery | Forge & Hide
                     );
                 "
             >
+
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
                 <button
                     type="submit"

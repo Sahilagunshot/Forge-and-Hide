@@ -1,220 +1,162 @@
-<!DOCTYPE html>
-<html>
-<head>
+{% extends "base.html" %}
 
-    <title>Edit Product</title>
+{% block title %}
+Edit Product | Admin | Forge &amp; Hide
+{% endblock %}
 
-    <style>
+{% block content %}
 
-        body{
-            background:#111;
-            color:white;
-            font-family:Arial;
-            padding:40px;
-        }
+<div class="page-head">
+    <h1>Edit Product</h1>
+    <p>{{ product.name }}</p>
+</div>
 
-        h1{
-            color:#d4af37;
-        }
+<div class="shell-narrow" style="margin-top:30px;">
 
-        input, textarea, select{
+    <form method="POST" enctype="multipart/form-data" class="box">
 
-            width:100%;
-            padding:12px;
-            margin-bottom:18px;
-            font-size:16px;
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-        }
+        <div class="field">
+            <label for="name">Name</label>
+            <input type="text" id="name" name="name" value="{{ product.name }}" required>
+        </div>
 
-        button{
+        <div class="field">
+            <label for="description">Description</label>
+            <textarea id="description" name="description" rows="5">{{ product.description or '' }}</textarea>
+        </div>
 
-            background:#d4af37;
-            color:black;
-            border:none;
-            padding:14px 28px;
-            cursor:pointer;
-            font-size:17px;
+        <div class="field">
+            <label for="short_description">Short Description</label>
+            <input type="text" id="short_description" name="short_description" value="{{ product.short_description or '' }}">
+        </div>
 
-        }
+        <div class="field">
+            <label for="long_description">Long Description</label>
+            <textarea id="long_description" name="long_description" rows="8">{{ product.long_description or '' }}</textarea>
+        </div>
 
-        img{
+        <div class="field-row">
 
-            width:180px;
-            margin-bottom:20px;
-            border-radius:8px;
+            <div class="field">
+                <label for="leather_type">Leather Type</label>
+                <input type="text" id="leather_type" name="leather_type" value="{{ product.leather_type or '' }}">
+            </div>
 
-        }
+            <div class="field">
+                <label for="hardware">Hardware</label>
+                <input type="text" id="hardware" name="hardware" value="{{ product.hardware or '' }}">
+            </div>
 
-    </style>
+        </div>
 
-</head>
+        <div class="field-row">
 
-<body>
+            <div class="field">
+                <label for="lining">Lining</label>
+                <input type="text" id="lining" name="lining" value="{{ product.lining or '' }}">
+            </div>
 
-<h1>Edit Product</h1>
+            <div class="field">
+                <label for="dimensions">Dimensions</label>
+                <input type="text" id="dimensions" name="dimensions" value="{{ product.dimensions or '' }}">
+            </div>
 
-<form method="POST" enctype="multipart/form-data">
+        </div>
 
-<label>Name</label>
+        <div class="field-row">
 
-<input
-type="text"
-name="name"
-value="{{ product.name }}"
-required>
+            <div class="field">
+                <label for="weight">Weight</label>
+                <input type="text" id="weight" name="weight" value="{{ product.weight or '' }}">
+            </div>
 
+            <div class="field">
+                <label for="made_in">Made In</label>
+                <input type="text" id="made_in" name="made_in" value="{{ product.made_in or '' }}">
+            </div>
 
-<label>Description</label>
+        </div>
 
-<textarea
-name="description"
-rows="5">{{ product.description }}</textarea>
+        <div class="field">
+            <label for="warranty">Warranty</label>
+            <input type="text" id="warranty" name="warranty" value="{{ product.warranty or '' }}">
+        </div>
 
-<label>Short Description</label>
+        <div class="field">
+            <label for="care">Care Instructions</label>
+            <textarea id="care" name="care" rows="5">{{ product.care or '' }}</textarea>
+        </div>
 
-<input
-type="text"
-name="short_description"
-value="{{ product.short_description or '' }}">
+        <div class="field check-field">
+            <label>
+                <input type="checkbox" name="is_bestseller" {% if product.is_bestseller %}checked{% endif %}>
+                Bestseller Product
+            </label>
+        </div>
 
-<label>Long Description</label>
+        <div class="field-row">
 
-<textarea
-name="long_description"
-rows="8">{{ product.long_description or '' }}</textarea>
+            <div class="field">
+                <label for="price">Price (₹)</label>
+                <input type="number" step="0.01" id="price" name="price" value="{{ product.price }}" required>
+            </div>
 
-<label>Leather Type</label>
+            <div class="field">
+                <label for="stock">Stock</label>
+                <input type="number" id="stock" name="stock" value="{{ product.stock }}" required>
+            </div>
 
-<input
-type="text"
-name="leather_type"
-value="{{ product.leather_type or '' }}">
+        </div>
 
-<label>Hardware</label>
+        <div class="field">
 
-<input
-type="text"
-name="hardware"
-value="{{ product.hardware or '' }}">
+            <label for="category">Category</label>
 
-<label>Lining</label>
+            <select id="category" name="category">
 
-<input
-type="text"
-name="lining"
-value="{{ product.lining or '' }}">
+                <option value="">No Category</option>
 
-<label>Dimensions</label>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if product.category_id == category.id %}selected{% endif %}>
+                    {{ category.name }}
+                </option>
+                {% endfor %}
 
-<input
-type="text"
-name="dimensions"
-value="{{ product.dimensions or '' }}">
+            </select>
 
-<label>Weight</label>
+        </div>
 
-<input
-type="text"
-name="weight"
-value="{{ product.weight or '' }}">
+        <div class="field">
 
-<label>Made In</label>
+            <label>Current Image</label>
 
-<input
-type="text"
-name="made_in"
-value="{{ product.made_in or '' }}">
+            {% if product.image %}
+            <img class="thumb-lg" src="{{ url_for('static', filename='uploads/' + product.image) }}" alt="{{ product.name }}">
+            {% else %}
+            <p class="muted">No image uploaded.</p>
+            {% endif %}
 
-<label>Warranty</label>
+            <label for="image">Upload New Image</label>
+            <input type="file" id="image" name="image">
 
-<input
-type="text"
-name="warranty"
-value="{{ product.warranty or '' }}">
+        </div>
 
-<label>Care Instructions</label>
+        <div class="order-actions">
 
-<textarea
-name="care"
-rows="5">{{ product.care or '' }}</textarea>
+            <button type="submit" class="hero-button">
+                Update Product
+            </button>
 
-<label>
+            <a class="hero-button btn-outline" href="{{ url_for('products') }}">
+                Back to Products
+            </a>
 
-<input
-type="checkbox"
-name="is_bestseller"
-{% if product.is_bestseller %}checked{% endif %}>
+        </div>
 
- Bestseller Product
+    </form>
 
-</label>
+</div>
 
-<br><br>
-
-
-<label>Price</label>
-
-<input
-type="number"
-step="0.01"
-name="price"
-value="{{ product.price }}"
-required>
-
-
-<label>Stock</label>
-
-<input
-type="number"
-name="stock"
-value="{{ product.stock }}"
-required>
-
-
-<label>Category</label>
-
-<select name="category">
-
-<option value="">No Category</option>
-
-{% for category in categories %}
-
-<option
-value="{{ category.id }}"
-{% if product.category_id == category.id %}selected{% endif %}>
-{{ category.name }}
-</option>
-
-{% endfor %}
-
-</select>
-
-{% if product.image %}
-
-<p><strong>Current Image</strong></p>
-
-<img
-src="{{ url_for('static', filename='uploads/' + product.image) }}">
-
-{% endif %}
-
-<br>
-
-<label>Upload New Image</label>
-
-<input
-type="file"
-name="image">
-
-<br><br>
-
-<button type="submit">
-
-Update Product
-
-</button>
-
-</form>
-
-</body>
-</html>
+{% endblock %}

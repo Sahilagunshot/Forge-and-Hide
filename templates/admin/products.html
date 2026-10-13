@@ -248,57 +248,25 @@ Admin Products | Forge & Hide
 
 {% if product.is_active %}
 
-<a
-    href="{{ url_for(
-        'archive_product',
-        id=product.id
-    ) }}"
-    class="admin-btn"
-    style="background:#92400e;"
-    onclick="
-        return confirm(
-            'Archive {{ product.name }}?'
-        );
-    "
->
-    Archive
-</a>
+<form method="POST" action="{{ url_for('archive_product', id=product.id) }}" style="display:inline;" onsubmit="return confirm('Archive {{ product.name }}?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="admin-btn" style="background:#92400e;">Archive</button>
+</form>
 
 {% else %}
 
-<a
-    href="{{ url_for(
-        'unarchive_product',
-        id=product.id
-    ) }}"
-    class="admin-btn"
-    style="background:#15803d;"
-    onclick="
-        return confirm(
-            'Restore {{ product.name }}?'
-        );
-    "
->
-    Unarchive
-</a>
+<form method="POST" action="{{ url_for('unarchive_product', id=product.id) }}" style="display:inline;" onsubmit="return confirm('Restore {{ product.name }}?');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="admin-btn" style="background:#15803d;">Unarchive</button>
+</form>
 
 {% endif %}
                         <!-- DELETE -->
 
-                        <a
-                            href="{{ url_for(
-                                'delete_product',
-                                id=product.id
-                            ) }}"
-                            class="admin-btn delete-btn"
-                            onclick="
-                                return confirm(
-                                    'Are you sure you want to delete {{ product.name }}?'
-                                );
-                            "
-                        >
-                            Delete
-                        </a>
+                        <form method="POST" action="{{ url_for('delete_product', id=product.id) }}" style="display:inline;" onsubmit="return confirm('Are you sure you want to delete {{ product.name }}?');">
+                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                            <button type="submit" class="admin-btn delete-btn">Delete</button>
+                        </form>
 
                     </td>
 

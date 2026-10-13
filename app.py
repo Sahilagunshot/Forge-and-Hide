@@ -3,10 +3,13 @@ from werkzeug.utils import secure_filename
 import uuid
 import os
 import hmac
+import re
+import unicodedata
 import hashlib
 import razorpay
 from dotenv import load_dotenv
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect, CSRFError
 from flask_login import (
     LoginManager,
     login_required,
@@ -48,6 +51,10 @@ db.init_app(app)
 
 migrate = Migrate(app, db)
 
+# CSRF protection ON (token session tak valid, 1 ghante me expire nahi hoga)
+app.config["WTF_CSRF_TIME_LIMIT"] = None
+csrf = CSRFProtect(app)
+
 login_manager = LoginManager()
 login_manager.login_view = "admin_login"
 login_manager.init_app(app)
@@ -59,12 +66,6 @@ def admin_required(f):
 
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        print(
-    "ADMIN CHECK:",
-    current_user.is_authenticated,
-    type(current_user).__name__,
-    session.get("customer_id")
-)
 
         if not current_user.is_authenticated:
             return redirect(url_for("admin_login"))
@@ -109,7 +110,8 @@ def inject_cart_count():
                 cart_count += item.quantity
 
     return {
-        "cart_count": cart_count
+        "cart_count": cart_count,
+        "business": BUSINESS
     }
 
 @login_manager.user_loader
@@ -131,12 +133,73 @@ def home():
         Product.id.desc()
     ).limit(8).all()
 
+    if not featured_products:
+        featured_products = latest_products[:4]
+
+    categories = Category.query.order_by(
+        Category.id.asc()
+    ).all()
+
+    # =========================
+    # HOME PAGE DATA
+    # =========================
+
+    uploads = app.config["UPLOAD_FOLDER"]
+
+    # Hero: static/video/hero.mp4 ho to video, warna photo
+    hero_video = os.path.exists(
+        os.path.join(app.root_path, "static", "video", "hero.mp4")
+    )
+
+    hero_image = None
+
+    for file_name in ["hero.jpg", "hero.png", "green-duffle-side-1.jpg"]:
+
+        if os.path.exists(os.path.join(uploads, file_name)):
+
+            hero_image = file_name
+            break
+
+    if not hero_image:
+
+        for product in latest_products:
+
+            if product.image:
+
+                hero_image = product.image
+                break
+
+    # Category tiles: har category ka ek cover photo
+    categories = Category.query.order_by(
+        Category.id.asc()
+    ).all()
+
+    category_tiles = []
+
+    for category in categories:
+
+        cover = Product.query.filter(
+            Product.category_id == category.id,
+            Product.is_active == True,
+            Product.image.isnot(None),
+            Product.image != ""
+        ).order_by(
+            Product.id.desc()
+        ).first()
+
+        category_tiles.append({
+            "category": category,
+            "image": cover.image if cover else None
+        })
+
     return render_template(
-    "index.html",
-    featured_products=featured_products,
-    latest_products=latest_products,
-    customer_name=session.get("customer_name")
-)
+        "index.html",
+        hero_video=hero_video,
+        hero_image=hero_image,
+        collection_products=latest_products,
+        category_tiles=category_tiles,
+        customer_name=session.get("customer_name")
+    )
 
 @app.route("/shop")
 def shop():
@@ -359,16 +422,6 @@ def cart():
     cart_items = Cart.query.filter_by(
         customer_id=customer_id
     ).all()
-
-    print(
-        "CURRENT CUSTOMER IN CART:",
-        customer_id
-    )
-
-    print(
-        "CART ITEMS LOADED:",
-        cart_items
-    )
 
     # =========================
     # REMOVE ARCHIVED PRODUCTS
@@ -598,7 +651,7 @@ def checkout():
 
                 razorpay_order = razorpay_client.order.create(
                     {
-                        "amount": int(round(total * 100)),
+                        "amount": int(round(total * 100  )),
                         "currency": "INR",
                         "receipt": f"fh_order_{order.id}"
                     }
@@ -814,7 +867,6 @@ def add_no_cache_headers(response):
 
     return response
 
-
 @app.route(
     "/admin/orders/<int:order_id>/update",
     methods=["POST"]
@@ -824,19 +876,28 @@ def admin_update_order(order_id):
 
     order = Order.query.get_or_404(order_id)
 
+    details_url = url_for(
+        "admin_order_details",
+        order_id=order.id
+    )
+
     old_status = order.status
     old_payment_status = order.payment_status
 
-    status = request.form.get("status")
-    payment_status = request.form.get("payment_status")
+    new_status = request.form.get("status")
+    new_payment_status = request.form.get("payment_status")
 
-    allowed_statuses = [
-        "Pending",
-        "Processing",
-        "Shipped",
-        "Delivered",
-        "Cancelled"
-    ]
+    # =========================
+    # WHICH STATUS CAN MOVE TO WHICH
+    # =========================
+
+    order_flow = {
+        "Pending": ["Pending", "Processing", "Cancelled"],
+        "Processing": ["Processing", "Shipped", "Cancelled"],
+        "Shipped": ["Shipped", "Delivered", "Cancelled"],
+        "Delivered": ["Delivered"],
+        "Cancelled": ["Cancelled"]
+    }
 
     allowed_payment_statuses = [
         "Pending",
@@ -848,129 +909,118 @@ def admin_update_order(order_id):
     # VALIDATE INPUT
     # =========================
 
-    if status not in allowed_statuses:
+    if new_status not in order_flow:
+
         flash("Invalid order status.")
-        return redirect(
-            url_for(
-                "admin_order_details",
-                order_id=order.id
-            )
-        )
+        return redirect(details_url)
 
-    if payment_status not in allowed_payment_statuses:
+    if new_payment_status not in allowed_payment_statuses:
+
         flash("Invalid payment status.")
-        return redirect(
-            url_for(
-                "admin_order_details",
-                order_id=order.id
+        return redirect(details_url)
+
+    if new_status not in order_flow.get(old_status, [old_status]):
+
+        flash(
+            f"An order cannot move from "
+            f"{old_status} to {new_status}."
+        )
+        return redirect(details_url)
+
+    # =========================
+    # PAYMENT STATUS RULES
+    # =========================
+
+    if (
+        order.payment_method == "ONLINE"
+        and new_payment_status != old_payment_status
+    ):
+
+        flash(
+            "Online payment status is set automatically "
+            "by Razorpay and cannot be changed here."
+        )
+        return redirect(details_url)
+
+    if (
+        old_status == "Cancelled"
+        and new_payment_status != old_payment_status
+    ):
+
+        flash("A cancelled order cannot be changed.")
+        return redirect(details_url)
+
+    # =========================
+    # WAS STOCK REDUCED FOR THIS ORDER?
+    # COD: reduced when order was placed.
+    # ONLINE: reduced only after payment.
+    # =========================
+
+    stock_held = (
+        not order.stock_restored
+        and (
+            order.payment_method == "COD"
+            or (
+                order.payment_method == "ONLINE"
+                and old_payment_status == "Paid"
             )
-        )
-
-    # =========================
-    # UPDATE ORDER STATUS
-    # =========================
-
-    order.status = status
-    order.payment_status = payment_status
-
-    # =========================
-    # DETERMINE STOCK ACTION
-    # =========================
-
-    restore_stock = (
-        (
-            status == "Cancelled"
-            and old_status != "Cancelled"
-        )
-        or
-        (
-            payment_status == "Failed"
-            and old_payment_status != "Failed"
         )
     )
 
-    restore_was_reversed = (
-        order.stock_restored
-        and status != "Cancelled"
-        and payment_status != "Failed"
+    cancelling = (
+        new_status == "Cancelled"
+        and old_status != "Cancelled"
     )
-
-    # =========================
-    # RESTORE STOCK
-    # =========================
-
-    if restore_stock and not order.stock_restored:
-
-        for item in order.items:
-
-            if item.product:
-
-                item.product.stock += item.quantity
-
-        order.stock_restored = True
-
-    # =========================
-    # RE-DEDUCT STOCK
-    # =========================
-
-    elif restore_was_reversed:
-
-        # Check stock for ALL items first
-
-        stock_available = True
-
-        for item in order.items:
-
-            if item.product:
-
-                if item.product.stock < item.quantity:
-
-                    stock_available = False
-                    break
-
-        if not stock_available:
-
-            db.session.rollback()
-
-            flash(
-                "Order status changed back, "
-                "but there is not enough stock to restore "
-                "this order."
-            )
-
-            return redirect(
-                url_for(
-                    "admin_order_details",
-                    order_id=order.id
-                )
-            )
-
-        # Deduct stock only after ALL items pass
-
-        for item in order.items:
-
-            if item.product:
-
-                item.product.stock -= item.quantity
-
-        order.stock_restored = False
 
     # =========================
     # SAVE
     # =========================
 
-    db.session.commit()
+    try:
 
-    flash("Order Updated Successfully")
+        order.status = new_status
+        order.payment_status = new_payment_status
 
-    return redirect(
-        url_for(
-            "admin_order_details",
-            order_id=order.id
+        if cancelling and stock_held:
+
+            for item in order.items:
+
+                Product.query.filter(
+                    Product.id == item.product_id
+                ).update(
+                    {"stock": Product.stock + item.quantity},
+                    synchronize_session=False
+                )
+
+            order.stock_restored = True
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash("Order could not be updated. Please try again.")
+        return redirect(details_url)
+
+    if (
+        cancelling
+        and order.payment_method == "ONLINE"
+        and old_payment_status == "Paid"
+    ):
+
+        flash(
+            "Order cancelled. The customer already paid online, "
+            "so please refund the amount from the Razorpay dashboard."
         )
-    )
 
-@app.route("/cart/increase/<int:id>")
+    else:
+
+        flash("Order Updated Successfully")
+
+    return redirect(details_url)
+
+@app.route("/cart/increase/<int:id>", methods=["POST"])
 @customer_required
 def increase_quantity(id):
 
@@ -989,7 +1039,7 @@ def increase_quantity(id):
     return redirect(url_for("cart"))
 
 
-@app.route("/cart/decrease/<int:id>")
+@app.route("/cart/decrease/<int:id>", methods=["POST"])
 @customer_required
 def decrease_quantity(id):
 
@@ -1008,7 +1058,7 @@ def decrease_quantity(id):
     return redirect(url_for("cart"))
 
 
-@app.route("/cart/remove/<int:id>")
+@app.route("/cart/remove/<int:id>", methods=["POST"])
 @customer_required
 def remove_cart_item(id):
 
@@ -1181,6 +1231,101 @@ def logout():
 
     return redirect(url_for("admin_login"))
 
+def slugify(text):
+
+    text = unicodedata.normalize("NFKD", text or "")
+    text = text.encode("ascii", "ignore").decode("ascii")
+    text = re.sub(r"[^a-zA-Z0-9]+", "-", text).strip("-").lower()
+
+    return text or "item"
+
+
+def is_clean_slug(slug):
+
+    return bool(
+        slug
+        and re.fullmatch(r"[a-z0-9]+(-[a-z0-9]+)*", slug)
+    )
+
+
+def unique_slug(name, exclude_id=None):
+
+    base = slugify(name)
+    slug = base
+    counter = 2
+
+    while Product.query.filter(
+        Product.slug == slug,
+        Product.id != (exclude_id or 0)
+    ).first():
+
+        slug = f"{base}-{counter}"
+        counter += 1
+
+    return slug
+
+
+def unique_category_slug(name, exclude_id=None):
+
+    base = slugify(name)
+    slug = base
+    counter = 2
+
+    while Category.query.filter(
+        Category.slug == slug,
+        Category.id != (exclude_id or 0)
+    ).first():
+
+        slug = f"{base}-{counter}"
+        counter += 1
+
+    return slug
+
+
+@app.cli.command("fix-slugs")
+def fix_slugs():
+    """Purane ganday slugs ko saaf URL me badalta hai."""
+
+    def show(text):
+        return str(text).encode("ascii", "backslashreplace").decode()
+
+    changed = 0
+
+    for category in Category.query.order_by(Category.id).all():
+
+        if is_clean_slug(category.slug):
+            continue
+
+        new_slug = unique_category_slug(
+            category.name,
+            exclude_id=category.id
+        )
+
+        print(f"Category: {show(category.slug)}  ->  {new_slug}")
+
+        category.slug = new_slug
+        db.session.flush()
+        changed += 1
+
+    for product in Product.query.order_by(Product.id).all():
+
+        if is_clean_slug(product.slug):
+            continue
+
+        new_slug = unique_slug(
+            product.name,
+            exclude_id=product.id
+        )
+
+        print(f"Product: {show(product.slug)}  ->  {new_slug}")
+
+        product.slug = new_slug
+        db.session.flush()
+        changed += 1
+
+    db.session.commit()
+
+    print(f"Done. {changed} slug(s) updated.")
 
 @app.route("/admin/products/add", methods=["GET", "POST"])
 @admin_required
@@ -1189,12 +1334,23 @@ def add_product():
     categories = Category.query.all()
 
     if request.method == "POST":
-
-        name = request.form.get("name")
+        name = (request.form.get("name") or "").strip()
         description = request.form.get("description")
-        price = float(request.form.get("price"))
-        stock = int(request.form.get("stock"))
         category_id = request.form.get("category")
+
+        try:
+            price = float(request.form.get("price"))
+            stock = int(request.form.get("stock"))
+        except (TypeError, ValueError):
+            flash("Please enter a valid price and stock.")
+            return redirect(url_for("add_product"))
+
+        if not name or price <= 0 or stock < 0:
+            flash(
+                "Name is required, price must be above 0 "
+                "and stock cannot be negative."
+            )
+            return redirect(url_for("add_product"))
         short_description = request.form.get("short_description")
         long_description = request.form.get("long_description")
         leather_type = request.form.get("leather_type")
@@ -1222,7 +1378,7 @@ def add_product():
 
         product = Product(
             name=name,
-            slug=name.lower().replace(" ", "-"),
+            slug= unique_slug(name),
             description=description,
             short_description=short_description,
             long_description=long_description,
@@ -1279,8 +1435,21 @@ def edit_product(id):
 
         product.name = request.form.get("name")
         product.description = request.form.get("description")
-        product.price = float(request.form.get("price"))
-        product.stock = int(request.form.get("stock"))
+        try:
+            new_price = float(request.form.get("price"))
+            new_stock = int(request.form.get("stock"))
+        except (TypeError, ValueError):
+            flash("Please enter a valid price and stock.")
+            return redirect(url_for("products"))
+
+        if new_price <= 0 or new_stock < 0:
+            flash(
+                "Price must be above 0 and stock cannot be negative."
+            )
+            return redirect(url_for("products"))
+
+        product.price = new_price
+        product.stock = new_stock
         product.short_description = request.form.get("short_description")
         product.long_description = request.form.get("long_description")
         product.leather_type = request.form.get("leather_type")
@@ -1325,7 +1494,7 @@ def edit_product(id):
     )
 
 
-@app.route("/admin/products/delete/<int:id>")
+@app.route("/admin/products/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_product(id):
 
@@ -1435,7 +1604,7 @@ def delete_product(id):
 
     return redirect(url_for("products"))
 
-@app.route("/admin/products/archive/<int:id>")
+@app.route("/admin/products/archive/<int:id>", methods=["POST"])
 @admin_required
 def archive_product(id):
 
@@ -1450,7 +1619,7 @@ def archive_product(id):
     return redirect(url_for("products"))
 
 
-@app.route("/admin/products/unarchive/<int:id>")
+@app.route("/admin/products/unarchive/<int:id>", methods=["POST"])
 @admin_required
 def unarchive_product(id):
 
@@ -1602,7 +1771,7 @@ def add_category():
 
         category = Category(
             name=name,
-            slug=name.lower().replace(" ", "-")
+            slug=unique_category_slug(name)
         )
 
         db.session.add(category)
@@ -1623,7 +1792,10 @@ def edit_category(id):
     if request.method == "POST":
 
         category.name = request.form.get("name")
-        category.slug = category.name.lower().replace(" ", "-")
+        category.slug = unique_category_slug(
+            category.name,
+            exclude_id=category.id
+        )
 
         db.session.commit()
 
@@ -1636,12 +1808,24 @@ def edit_category(id):
         category=category
     )
 
-
-@app.route("/admin/categories/delete/<int:id>")
+@app.route("/admin/categories/delete/<int:id>", methods=["POST"])
 @admin_required
 def delete_category(id):
 
     category = Category.query.get_or_404(id)
+
+    product_count = Product.query.filter_by(
+        category_id=category.id
+    ).count()
+
+    if product_count > 0:
+
+        flash(
+            f"This category has {product_count} product(s). "
+            "Move or delete them first."
+        )
+
+        return redirect(url_for("categories"))
 
     db.session.delete(category)
     db.session.commit()
@@ -1650,29 +1834,186 @@ def delete_category(id):
 
     return redirect(url_for("categories"))
 
-@app.route("/razorpay-test-order")
-@customer_required
-def razorpay_test_order():
 
-    amount = 100
+# =========================
+# FINALIZE A PAID ORDER
+# =========================
 
-    razorpay_order = razorpay_client.order.create(
-        {
-            "amount": amount,
-            "currency": "INR",
-            "payment_capture": 1
+def finalize_paid_order(
+    order,
+    razorpay_payment_id
+):
+
+    # =========================
+    # CANCELLED ORDER
+    # =========================
+
+    if order.status == "Cancelled":
+
+        return {
+            "success": False,
+            "message": "This order has been cancelled."
         }
-    )
+
+    # =========================
+    # ALREADY PAID
+    # =========================
+
+    if order.payment_status == "Paid":
+
+        if order.razorpay_payment_id == razorpay_payment_id:
+
+            return {
+                "success": True,
+                "message": "Payment already processed."
+            }
+
+        return {
+            "success": False,
+            "message":
+                "Order has already been paid "
+                "with another payment."
+        }
+
+    # =========================
+    # PAYMENT ID BELONGS TO ANOTHER ORDER?
+    # =========================
+
+    other_order = Order.query.filter(
+        Order.razorpay_payment_id == razorpay_payment_id,
+        Order.id != order.id
+    ).first()
+
+    if other_order:
+
+        return {
+            "success": False,
+            "message":
+                "This payment ID belongs to another order."
+        }
+
+    # =========================
+    # COPY ORDER DETAILS
+    # =========================
+
+    order_id = order.id
+    customer_id = order.customer_id
+
+    items = [
+        (item.product_id, item.quantity)
+        for item in order.items
+    ]
+
+    try:
+
+        # =========================
+        # CLAIM THE ORDER (ONLY ONE PROCESS WINS)
+        # =========================
+
+        claimed = Order.query.filter(
+            Order.id == order_id,
+            Order.payment_status != "Paid",
+            Order.status != "Cancelled"
+        ).update(
+            {
+                "payment_status": "Paid",
+                "razorpay_payment_id": razorpay_payment_id,
+                "stock_restored": False
+            },
+            synchronize_session=False
+        )
+
+        if claimed == 0:
+
+            db.session.rollback()
+
+            fresh_order = db.session.get(Order, order_id)
+
+            if (
+                fresh_order
+                and fresh_order.payment_status == "Paid"
+                and fresh_order.razorpay_payment_id
+                    == razorpay_payment_id
+            ):
+
+                return {
+                    "success": True,
+                    "message": "Payment already processed."
+                }
+
+            return {
+                "success": False,
+                "message": "Order could not be processed."
+            }
+
+        # =========================
+        # REDUCE STOCK SAFELY (NO OVERSELL)
+        # =========================
+
+        for product_id, quantity in items:
+
+            updated = Product.query.filter(
+                Product.id == product_id,
+                Product.stock >= quantity
+            ).update(
+                {"stock": Product.stock - quantity},
+                synchronize_session=False
+            )
+
+            if updated == 0:
+
+                db.session.rollback()
+
+                product = db.session.get(Product, product_id)
+
+                product_name = (
+                    product.name if product
+                    else "a product"
+                )
+
+                return {
+                    "success": False,
+                    "message":
+                        f"Not enough stock for {product_name}."
+                }
+
+        # =========================
+        # REMOVE ORDERED PRODUCTS FROM CART
+        # =========================
+
+        product_ids = [
+            product_id for product_id, quantity in items
+        ]
+
+        Cart.query.filter(
+            Cart.customer_id == customer_id,
+            Cart.product_id.in_(product_ids)
+        ).delete(synchronize_session=False)
+
+        # =========================
+        # SAVE EVERYTHING TOGETHER
+        # =========================
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        return {
+            "success": False,
+            "message": "Payment update failed."
+        }
 
     return {
         "success": True,
-        "razorpay_order_id": razorpay_order["id"],
-        "amount": razorpay_order["amount"],
-        "currency": razorpay_order["currency"]
+        "message": "Payment processed successfully."
     }
 
 
-
+# =========================
+# VERIFY RAZORPAY PAYMENT
+# =========================
 
 @app.route(
     "/verify-razorpay-payment",
@@ -1695,7 +2036,11 @@ def verify_razorpay_payment():
         "razorpay_signature"
     )
 
-    # CHECK REQUIRED PAYMENT DETAILS
+
+    # =========================
+    # CHECK REQUIRED DETAILS
+    # =========================
+
     if not all([
         razorpay_payment_id,
         razorpay_order_id,
@@ -1704,20 +2049,28 @@ def verify_razorpay_payment():
 
         return {
             "success": False,
-            "message": "Missing payment details."
+            "message":
+                "Missing payment details."
         }, 400
 
+
+    # =========================
     # FIND OUR ORDER
+    # =========================
+
     order = Order.query.filter_by(
         razorpay_order_id=razorpay_order_id
     ).first()
+
 
     if not order:
 
         return {
             "success": False,
-            "message": "Order not found."
+            "message":
+                "Order not found."
         }, 404
+
 
     # =========================
     # CHECK CUSTOMER OWNERSHIP
@@ -1729,53 +2082,15 @@ def verify_razorpay_payment():
 
         return {
             "success": False,
-            "message": "Unauthorized order."
+            "message":
+                "Unauthorized order."
         }, 403
 
 
     # =========================
-    # CHECK ORDER STATUS
-    # =========================
-
-    if order.status == "Cancelled":
-
-        return {
-            "success": False,
-            "message": "This order has been cancelled."
-        }, 400
-
-
-    # =========================
-    # DUPLICATE VERIFICATION
-    # =========================
-
-    if order.payment_status == "Paid":
-
-        if order.razorpay_payment_id == razorpay_payment_id:
-
-            return {
-                "success": True
-            }
-
-        return {
-            "success": False,
-            "message": "Order has already been paid."
-        }, 400
-
-    # CHECK WHETHER THIS PAYMENT ID
-    # WAS ALREADY USED FOR ANOTHER ORDER
-    existing_payment = Order.query.filter_by(
-        razorpay_payment_id=razorpay_payment_id
-    ).first()
-
-    if existing_payment:
-
-        return {
-            "success": False,
-            "message": "Payment has already been used."
-        }, 400
-
     # VERIFY RAZORPAY SIGNATURE
+    # =========================
+
     try:
 
         razorpay_client.utility.verify_payment_signature(
@@ -1795,70 +2110,30 @@ def verify_razorpay_payment():
 
         return {
             "success": False,
-            "message": "Payment verification failed."
+            "message":
+                "Payment verification failed."
         }, 400
 
-    # FINAL STOCK CHECK
-    for item in order.items:
-
-        product = Product.query.get(
-            item.product_id
-        )
-
-        if not product:
-
-            return {
-                "success": False,
-                "message": "Product no longer exists."
-            }, 400
-
-        if product.stock < item.quantity:
-
-            return {
-                "success": False,
-                "message":
-                    f"Not enough stock for {product.name}."
-            }, 400
-
-    # REDUCE STOCK
-    for item in order.items:
-
-        product = Product.query.get(
-            item.product_id
-        )
-
-        product.stock -= item.quantity
 
     # =========================
-    # CLEAR ONLY ITEMS
-    # BELONGING TO THIS ORDER
+    # FINALIZE PAYMENT
     # =========================
 
-    ordered_product_ids = {
-        item.product_id
-        for item in order.items
-    }
-
-    cart_items = Cart.query.filter(
-        Cart.customer_id == session.get("customer_id"),
-        Cart.product_id.in_(ordered_product_ids)
-    ).all()
-
-    for cart_item in cart_items:
-
-        db.session.delete(cart_item)
-
-    # SAVE PAYMENT INFORMATION
-    order.razorpay_payment_id = (
+    result = finalize_paid_order(
+        order,
         razorpay_payment_id
     )
 
-    order.payment_status = "Paid"
 
-    db.session.commit()
+    if not result["success"]:
+
+        return result, 400
+
 
     return {
-        "success": True
+        "success": True,
+        "message":
+            result["message"]
     }
 
 @app.route("/online-payment/<int:order_id>", methods=["GET"])
@@ -1946,18 +2221,44 @@ def retry_payment(order_id):
             "my_orders"
             )
         )
-
     # CREATE A NEW RAZORPAY ORDER
     # FOR THE SAME LOCAL ORDER
-    razorpay_order = razorpay_client.order.create(
-        {
-            "amount": int(
-                round(order.total_amount * 100)
-            ),
-            "currency": "INR",
-            "receipt": f"fh_order_{order.id}_retry"
-        }
-    )
+    # (2 attempts: stale connection ho to dusra attempt naye connection par chalega)
+
+    razorpay_order = None
+
+    for attempt in range(2):
+
+        try:
+
+            razorpay_order = razorpay_client.order.create(
+                {
+                    "amount": int(
+                        round(order.total_amount * 100 )
+                    ),
+                    "currency": "INR",
+                    "receipt": f"fh_order_{order.id}_retry"
+                }
+            )
+
+            break
+
+        except Exception as e:
+
+            print("RAZORPAY RETRY ERROR:", repr(e))
+
+    if not razorpay_order:
+
+        flash(
+            "Didn't connect to Payment Gateway. "
+            "Please Try Again."
+        )
+
+        return redirect(
+            url_for(
+                "my_orders"
+            )
+        )
 
     # UPDATE RAZORPAY ORDER ID
     order.razorpay_order_id = (
@@ -1983,6 +2284,7 @@ def retry_payment(order_id):
     "/razorpay-webhook",
     methods=["POST"]
 )
+@csrf.exempt
 def razorpay_webhook():
 
     # =========================
@@ -2042,12 +2344,412 @@ def razorpay_webhook():
 
 
     # =========================
-    # WEBHOOK VERIFIED
+    # PARSE WEBHOOK PAYLOAD
+    # =========================
+
+    try:
+
+        webhook_data = request.get_json()
+
+    except Exception:
+
+        return {
+            "success": False,
+            "message": "Invalid webhook payload."
+        }, 400
+
+
+    if not webhook_data:
+
+        return {
+            "success": False,
+            "message": "Empty webhook payload."
+        }, 400
+
+
+        # =========================
+    # IDENTIFY EVENT
+    # =========================
+
+    event = webhook_data.get(
+        "event"
+    )
+
+
+    # =========================
+    # EXTRACT PAYMENT DATA
+    # =========================
+
+    payment_entity = (
+        webhook_data
+        .get("payload", {})
+        .get("payment", {})
+        .get("entity", {})
+    )
+
+    razorpay_payment_id = payment_entity.get(
+        "id"
+    )
+
+    razorpay_order_id = payment_entity.get(
+        "order_id"
+    )
+
+
+    # =========================
+    # HANDLE PAYMENT EVENT
+    # =========================
+    if event == "payment.captured":
+
+        if not razorpay_payment_id:
+
+            return {
+                "success": False,
+                "message":
+                    "Payment ID missing from webhook."
+            }, 400
+
+
+        if not razorpay_order_id:
+
+            return {
+                "success": False,
+                "message":
+                    "Razorpay order ID missing from webhook."
+            }, 400
+
+
+        # =========================
+        # FIND LOCAL ORDER
+        # =========================
+
+        order = Order.query.filter_by(
+            razorpay_order_id=razorpay_order_id
+        ).first()
+
+
+        if not order:
+
+            return {
+                "success": False,
+                "message":
+                    "Local order not found."
+            }, 404
+
+
+        # =========================
+        # FINALIZE PAYMENT
+        # =========================
+
+        result = finalize_paid_order(
+            order,
+            razorpay_payment_id
+        )
+
+
+        if not result["success"]:
+
+            return result, 400
+
+
+        return {
+            "success": True,
+            "message":
+                result["message"],
+            "event": event,
+            "razorpay_payment_id":
+                razorpay_payment_id,
+            "razorpay_order_id":
+                razorpay_order_id
+        }, 200
+
+    # =========================
+    # OTHER WEBHOOK EVENTS
     # =========================
 
     return {
         "success": True,
-        "message": "Webhook verified."
+        "message":
+            "Webhook received.",
+        "event": event
     }, 200
+
+# =========================
+# BUSINESS DETAILS
+# (apna asli data yahan likho, baaki pages khud badal jayenge)
+# =========================
+
+BUSINESS = {
+    "name": "Forge & Hide",
+    "legal_name": "R.S. Leather Work",
+    "address": "7, Ground floor, Block no 7, Transit camp, Mahatama gandhi road, Road no 2, Rajiv Gandhi Nagar, Dharavi, Mumbai, Maharashtra 400017 India",
+    "phone": "+91 89283 52221",
+    "email": "ansarisahil987654@gmail.com",
+    "production_time": "4 to 8 weeks",
+    "delivery_time": "5 to 8 business days",
+    "return_window": "7 days",
+}
+
+
+def build_info_pages():
+
+    n = BUSINESS["name"].replace("&", "&amp;")
+    legal = BUSINESS["legal_name"]
+    address = BUSINESS["address"]
+    phone = BUSINESS["phone"]
+    email = BUSINESS["email"]
+    prod = BUSINESS["production_time"]
+    deliv = BUSINESS["delivery_time"]
+    window = BUSINESS["return_window"]
+
+    return {
+
+        "about": ("About Us", f"""
+<p>{n} is a handcrafted leather brand by {legal}. Every bag, trolley and jacket
+is made by experienced artisans in India using carefully selected premium
+leather and quality hardware.</p>
+<p>We do not chase trends. We build leather goods that age beautifully and
+last for years.</p>
+<p>Many of our pieces are made to order, so your product is built specifically
+for you. For custom requests, write to us at {email}.</p>
+"""),
+
+        "contact": ("Contact Us", f"""
+<p>We are happy to help with orders, custom requests and product questions.</p>
+<p><strong>Business:</strong> {legal}</p>
+<p><strong>Address:</strong> {address}</p>
+<p><strong>Phone:</strong> {phone}</p>
+<p><strong>Email:</strong> {email}</p>
+<p>We usually reply within 1 to 2 business days.</p>
+"""),
+
+        "privacy-policy": ("Privacy Policy", f"""
+<p>{n} respects your privacy. This page explains what information we collect
+and how we use it.</p>
+<h2>Information we collect</h2>
+<p>When you create an account or place an order, we collect your name, email
+address, phone number, shipping address and order details.</p>
+<h2>How we use it</h2>
+<p>We use this information only to process and deliver your orders, send order
+updates, provide support and improve our store.</p>
+<h2>Payments</h2>
+<p>Online payments are processed securely by Razorpay. We do not store your
+card, UPI or net banking details on our servers.</p>
+<h2>Cookies</h2>
+<p>We use a session cookie to keep you logged in and to remember your cart.</p>
+<h2>Sharing</h2>
+<p>We do not sell your personal information. We share it only with payment
+and delivery partners as needed to complete your order.</p>
+<h2>Your choices</h2>
+<p>To view, correct or delete your information, write to us at {email}.</p>
+"""),
+
+        "terms-and-conditions": ("Terms and Conditions", f"""
+<p>By using this website and placing an order with {n}, you agree to these
+terms.</p>
+<h2>Products and pricing</h2>
+<p>All prices are in Indian Rupees (INR). Leather is a natural material, so
+colour, grain and finish may vary slightly from the photos.</p>
+<h2>Orders</h2>
+<p>An order is confirmed once it is placed successfully. For online payments,
+the order is confirmed after payment is received. We may cancel an order if a
+product cannot be made or delivered, and any amount paid will be refunded.</p>
+<h2>Made-to-order items</h2>
+<p>Many products are made to order and take around {prod} to prepare before
+shipping.</p>
+<h2>Payments</h2>
+<p>We accept Cash on Delivery and online payments through Razorpay.</p>
+<h2>Liability</h2>
+<p>Our liability for any order is limited to the amount paid for that order.</p>
+<h2>Contact</h2>
+<p>Questions about these terms: {email}.</p>
+"""),
+
+        "refund-policy": ("Refund and Cancellation Policy", f"""
+<h2>Cancellation</h2>
+<p>You can cancel an order before we start making it. Write to us at {email}
+or call {phone} with your order number.</p>
+<h2>Made-to-order and customised items</h2>
+<p>Customised products are made specially for you and cannot be returned or
+exchanged unless they arrive damaged or defective.</p>
+<h2>Damaged or defective items</h2>
+<p>If your item arrives damaged or defective, tell us within {window} of
+delivery with your order number and clear photos (please also keep the unboxing
+video if you have one). We will repair, replace or refund it after checking.</p>
+<h2>Refunds</h2>
+<p>Approved refunds are returned to the original payment method within 5 to 7
+business days. For Cash on Delivery orders, we refund by bank transfer.</p>
+"""),
+
+        "shipping-policy": ("Shipping Policy", f"""
+<h2>Where we ship</h2>
+<p>We currently ship across India. For international orders, please contact
+us at {email}.</p>
+<h2>Processing time</h2>
+<p>Made-to-order products take around {prod} to prepare. You will be informed
+when your order is shipped.</p>
+<h2>Delivery time</h2>
+<p>After shipping, delivery usually takes {deliv}.</p>
+<h2>Shipping charges</h2>
+<p>Shipping is currently free within India.</p>
+<h2>Questions</h2>
+<p>For help with your delivery, write to {email} or call {phone}.</p>
+"""),
+    }
+
+
+INFO_PAGES = build_info_pages()
+
+
+def make_info_view(slug):
+
+    def view():
+
+        title, content = INFO_PAGES[slug]
+
+        return render_template(
+            "info_page.html",
+            title=title,
+            content=content
+        )
+
+    return view
+
+
+for _slug in INFO_PAGES:
+
+    app.add_url_rule(
+        "/" + _slug,
+        endpoint="info_" + _slug.replace("-", "_"),
+        view_func=make_info_view(_slug)
+    )
+@app.errorhandler(CSRFError)
+def csrf_error(error):
+
+    return render_template(
+        "error.html",
+        code=400,
+        title="Session Expired",
+        message="Your session expired. Please go back, refresh the page and try again."
+    ), 400
+
+
+@app.errorhandler(403)
+def forbidden_error(error):
+
+    return render_template(
+        "error.html",
+        code=403,
+        title="Access Denied",
+        message="You do not have permission to open this page."
+    ), 403
+
+
+@app.errorhandler(404)
+def not_found_error(error):
+
+    return render_template(
+        "error.html",
+        code=404,
+        title="Page Not Found",
+        message="The page you are looking for does not exist."
+    ), 404
+
+
+@app.errorhandler(500)
+def server_error(error):
+
+    db.session.rollback()
+
+    return render_template(
+        "error.html",
+        code=500,
+        title="Something Went Wrong",
+        message="Please try again in a moment."
+    ), 500
+
+
+@app.route(
+    "/my-orders/<int:order_id>/cancel",
+    methods=["POST"]
+)
+@customer_required
+def cancel_order(order_id):
+
+    order = Order.query.get_or_404(order_id)
+
+    if order.customer_id != session.get("customer_id"):
+
+        flash("You are not authorized to cancel this order.")
+
+        return redirect(url_for("my_orders"))
+
+    order_pk = order.id
+    payment_method = order.payment_method
+
+    items = [
+        (item.product_id, item.quantity)
+        for item in order.items
+    ]
+
+    try:
+
+        cancelled = Order.query.filter(
+            Order.id == order_pk,
+            Order.status == "Pending",
+            Order.payment_status != "Paid"
+        ).update(
+            {"status": "Cancelled"},
+            synchronize_session=False
+        )
+
+        if cancelled == 0:
+
+            db.session.rollback()
+
+            flash(
+                "This order can no longer be cancelled online. "
+                "Please contact us."
+            )
+
+            return redirect(
+                url_for("order_details", order_id=order_pk)
+            )
+
+        if payment_method == "COD":
+
+            for product_id, quantity in items:
+
+                Product.query.filter(
+                    Product.id == product_id
+                ).update(
+                    {"stock": Product.stock + quantity},
+                    synchronize_session=False
+                )
+
+            Order.query.filter(
+                Order.id == order_pk
+            ).update(
+                {"stock_restored": True},
+                synchronize_session=False
+            )
+
+        db.session.commit()
+
+    except Exception:
+
+        db.session.rollback()
+
+        flash("Could not cancel the order. Please try again.")
+
+        return redirect(
+            url_for("order_details", order_id=order_pk)
+        )
+
+    flash("Your order has been cancelled.")
+
+    return redirect(
+        url_for("order_details", order_id=order_pk)
+    )
 if __name__ == "__main__":
     app.run(debug=True, use_reloader=False)

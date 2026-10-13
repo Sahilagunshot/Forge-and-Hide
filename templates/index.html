@@ -1,167 +1,105 @@
 {% extends "base.html" %}
 
 {% block title %}
-Home | Forge & Hide
+Forge &amp; Hide | Handcrafted Luxury Leather
 {% endblock %}
 
 {% block content %}
 
-<section class="hero-section">
 
-    <div class="hero-content">
+<!-- =========================
+     HERO (video ya photo)
+========================= -->
 
-        <div class="hero-left">
+<section class="hero-video">
 
-            <span class="hero-tag">
-                FORGE & HIDE
-            </span>
+    {% if hero_video %}
 
-            <h1>
-                Luxury Leather<br>
-                Duffel Bags
-            </h1>
+    <video
+        autoplay
+        muted
+        loop
+        playsinline
+        preload="metadata"
+        {% if hero_image %}poster="{{ url_for('static', filename='uploads/' + hero_image) }}"{% endif %}
+    >
+        <source src="{{ url_for('static', filename='video/hero.mp4') }}" type="video/mp4">
+    </video>
 
-            <p>
-
-                Handcrafted from premium full-grain leather.<br>
-
-                Built Slowly. Crafted for Lifetime.
-
-            </p>
-
-            <a href="/shop">
-
-                <button class="hero-button">
-
-                    Explore Collection
-
-                </button>
-
-            </a>
-
-        </div>
-
-        <div class="hero-right">
+    {% elif hero_image %}
 
     <img
-        id="heroImage1"
-        src="{{ url_for('static', filename='uploads/green-duffle-side-1.jpg') }}"
-        alt="Luxury Leather Duffel">
+        class="hero-media"
+        src="{{ url_for('static', filename='uploads/' + hero_image) }}"
+        alt="Forge &amp; Hide"
+    >
 
-</div>
+    {% endif %}
+
+    <div class="hero-overlay"></div>
+
+    <div class="hero-text">
+
+        <p class="hero-eyebrow">The Forge &amp; Hide Story</p>
+
+        <h1>Built Slowly.<br>Made to Last a Lifetime.</h1>
+
+        <a class="hero-link" href="{{ url_for('shop') }}">
+            Explore the Collection
+        </a>
 
     </div>
 
 </section>
 
-<section class="hero-section">
 
-    <div class="hero-content">
+<!-- =========================
+     THE COLLECTION
+========================= -->
 
-        <div class="hero-right">
+{% if collection_products %}
 
-    <img
-        id="heroImage2"
-        src="{{ url_for('static', filename='uploads/tan-duffle-side-1.png') }}"
-        alt="Luxury Leather Trolley Duffel">
+<section class="collection">
 
-</div>
+    <div class="collection-head">
 
-        <div class="hero-left">
+        <h2>The Collection</h2>
 
-            <span class="hero-tag">
-                FORGE & HIDE
-            </span>
+        <a class="view-all" href="{{ url_for('shop') }}">View All</a>
 
-            <h1>
-                Luxury Leather<br>
-                Duffels with Trolley Wheels
-            </h1>
+    </div>
 
-            <p>
+    <div class="collection-strip">
 
-                Premium leather trolley duffels designed for effortless travel,
-                timeless craftsmanship and unmatched durability.
+        {% for product in collection_products %}
 
-            </p>
+        {% set gallery = product.images|sort(attribute='sort_order') %}
 
-            <a href="/shop">
+        <div class="p-tile">
 
-                <button class="hero-button">
+            <a class="p-media" href="{{ url_for('product_detail', slug=product.slug) }}">
 
-                    View Trolley Collection
+                {% if product.image %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + product.image) }}"
+                    alt="{{ product.name }}"
+                >
+                {% endif %}
 
-                </button>
+                {% if gallery %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + gallery[0].image) }}"
+                    alt="{{ product.name }}"
+                >
+                {% endif %}
 
             </a>
 
-        </div>
-
-    </div>
-
-</section>
-
-<section class="categories">
-
-    <h2>Shop by Category</h2>
-
-    <div class="category-grid">
-
-        <a href="/shop?category=duffel" class="category-card">
-
-    <h3>Leather Duffels</h3>
-
-    <p>Luxury travel companions</p>
-
-</a>
-
-        <a href="/shop?category=jacket" class="category-card">
-
-    <h3>Leather Jackets</h3>
-
-    <p>Timeless craftsmanship</p>
-
-</a>
-
-        <a href="/shop?category=trolley" class="category-card">
-
-    <h3>Leather Trolleys</h3>
-
-    <p>Travel with elegance</p>
-
-</a>
-
-    </div>
-
-</section>
-
-<section class="featured-products">
-
-    <h2>Featured Collection</h2>
-
-    <div class="product-grid">
-
-        {% for product in featured_products %}
-
-        <div class="product-card">
-
-            {% if product.image %}
-
-            <img
-            src="{{ url_for('static', filename='uploads/' + product.image) }}"
-            alt="{{ product.name }}">
-
-            {% endif %}
-
-            <h3>{{ product.name }}</h3>
-
-            <p>₹ {{ product.price }}</p>
-
-            <a href="/shop">
-
-                <button>View Product</button>
-
+            <a class="p-name" href="{{ url_for('product_detail', slug=product.slug) }}">
+                {{ product.name }}
             </a>
+
+            <span class="p-price">₹ {{ product.price }}</span>
 
         </div>
 
@@ -171,56 +109,42 @@ Home | Forge & Hide
 
 </section>
 
+{% endif %}
 
-<section class="home-section">
 
-    <h2 class="section-title">
+<!-- =========================
+     CATEGORY TILES
+========================= -->
 
-        Why Forge & Hide
+{% if category_tiles %}
 
-    </h2>
+<section class="cat-tiles">
 
-    <div class="category-grid">
+    {% for tile in category_tiles %}
 
-        <div class="category-card">
+    <a class="cat-tile" href="{{ url_for('shop', category=tile.category.slug) }}">
 
-            <h3>Premium Leather</h3>
+        {% if tile.image %}
+        <img
+            src="{{ url_for('static', filename='uploads/' + tile.image) }}"
+            alt="{{ tile.category.name }}"
+        >
+        {% endif %}
 
-            <p>
+        <span>{{ tile.category.name }}</span>
 
-                Full grain leather crafted to age beautifully.
+    </a>
 
-            </p>
-
-        </div>
-
-        <div class="category-card">
-
-            <h3>Handcrafted</h3>
-
-            <p>
-
-                Every stitch reflects precision and craftsmanship.
-
-            </p>
-
-        </div>
-
-        <div class="category-card">
-
-            <h3>Built For Life</h3>
-
-            <p>
-
-                Timeless products made for decades of use.
-
-            </p>
-
-        </div>
-
-    </div>
+    {% endfor %}
 
 </section>
+
+{% endif %}
+
+
+<!-- =========================
+     CRAFTSMANSHIP
+========================= -->
 
 <section class="craftsmanship">
 
@@ -229,18 +153,14 @@ Home | Forge & Hide
         <h2>Crafted by Hand.<br>Built for Generations.</h2>
 
         <p>
-
-            Every Forge & Hide product is handcrafted using carefully
-            selected premium leather, precision hardware and timeless
-            craftsmanship.
-
+            Every Forge &amp; Hide piece is handcrafted from carefully selected
+            premium leather and precision hardware, by artisans who have spent
+            their lives mastering the craft.
         </p>
 
         <p>
-
-            We don't chase trends.
-            We build leather goods that become better with age.
-
+            We do not chase trends. We build leather goods that become better
+            with age.
         </p>
 
     </div>
@@ -248,96 +168,61 @@ Home | Forge & Hide
     <div class="craft-right">
 
         <div class="craft-box">
-
             <h3>100%</h3>
-
             <span>Handcrafted</span>
-
         </div>
 
         <div class="craft-box">
-
             <h3>Premium</h3>
-
             <span>Full Grain Leather</span>
-
         </div>
 
         <div class="craft-box">
-
             <h3>Built</h3>
-
             <span>For Lifetime Use</span>
-
         </div>
 
         <div class="craft-box">
-
-            <h3>Luxury</h3>
-
-            <span>Made in India</span>
-
+            <h3>Made</h3>
+            <span>In India</span>
         </div>
 
     </div>
 
 </section>
 
-<section class="instagram-section">
 
-    <h2>Inside Forge & Hide</h2>
+<!-- =========================
+     MADE TO ORDER
+========================= -->
 
-    <p>
-        Discover our craftsmanship, premium leather and timeless creations.
-    </p>
+{% set appointment_image = category_tiles[-1].image if category_tiles and category_tiles[-1].image else hero_image %}
 
-    <div class="instagram-grid">
+<section class="appointment">
 
-        <div class="insta-card">Duffel Campaign</div>
+    {% if appointment_image %}
+    <img
+        src="{{ url_for('static', filename='uploads/' + appointment_image) }}"
+        alt=""
+    >
+    {% endif %}
 
-        <div class="insta-card">Leather Jacket</div>
+    <div class="appointment-text">
 
-        <div class="insta-card">Workshop</div>
-
-        <div class="insta-card">Luxury Trolley</div>
-
-        <div class="insta-card">Leather Details</div>
-
-        <div class="insta-card">Travel Collection</div>
-
-    </div>
-
-</section>
-
-<section class="newsletter">
-
-    <div class="newsletter-content">
-
-        <h2>Join The Forge & Hide Circle</h2>
+        <h2>Made to Order, Just for You</h2>
 
         <p>
-
-            Be the first to discover new collections,
-            limited editions and exclusive offers.
-
+            Choose your leather, lining and hardware. Tell us what you have
+            in mind and our artisans will build it.
         </p>
 
-        <form class="newsletter-form">
-
-            <input
-                type="email"
-                placeholder="Enter your email">
-
-            <button type="submit">
-
-                Subscribe
-
-            </button>
-
-        </form>
+        <a class="hero-link" href="/contact">
+            Book a Consultation
+        </a>
 
     </div>
 
 </section>
+
 
 {% endblock %}

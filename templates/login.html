@@ -16,6 +16,8 @@ Login | Forge & Hide
 
         <form method="POST">
 
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
             <input
                 type="email"
                 name="email"

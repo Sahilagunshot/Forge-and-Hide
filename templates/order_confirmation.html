@@ -1,100 +1,40 @@
 {% extends "base.html" %}
 
 {% block title %}
-Order Confirmed | Forge & Hide
+Order Confirmed | Forge &amp; Hide
 {% endblock %}
 
 {% block content %}
 
-<div style="
-    max-width:900px;
-    margin:60px auto;
-    padding:40px;
-    text-align:center;
-">
+<div class="shell-narrow" style="margin-top:80px;text-align:center;">
 
-    <div style="
-        background:#181818;
-        padding:45px;
-        border-radius:12px;
-    ">
+    <div class="big-check">✓</div>
 
-        <div style="
-            font-size:60px;
-            margin-bottom:20px;
-        ">
-            ✓
-        </div>
+    <h1 style="font-size:42px;margin-bottom:14px;">Thank you for your order</h1>
 
-        <h1 style="
-            color:#d4af37;
-            margin-bottom:15px;
-        ">
-            Order Confirmed
-        </h1>
+    <p class="muted">Your order has been successfully placed.</p>
 
-        <p style="
-            font-size:18px;
-            color:#ccc;
-        ">
-            Thank you for your order.
-        </p>
+    <div class="box" style="margin:40px auto;text-align:left;max-width:520px;">
 
-        <p style="
-            color:#aaa;
-            margin-top:20px;
-        ">
-            Your order has been successfully placed.
-        </p>
+        <dl class="kv">
 
+            <dt>Order ID</dt><dd>#{{ order.id }}</dd>
+            <dt>Total</dt><dd>₹ {{ order.total_amount }}</dd>
+            <dt>Order Status</dt><dd>{{ order.status }}</dd>
+            <dt>Payment</dt><dd>{{ order.payment_status }}</dd>
 
-        <div style="
-            margin:30px auto;
-            padding:20px;
-            max-width:500px;
-            background:#111;
-            border-radius:8px;
-        ">
+        </dl>
 
-            <p>
-                <strong>Order ID:</strong>
-                #{{ order.id }}
-            </p>
+    </div>
 
-            <p>
-                <strong>Order Total:</strong>
-                ₹ {{ order.total_amount }}
-            </p>
+    <div class="order-actions" style="justify-content:center;">
 
-            <p>
-                <strong>Order Status:</strong>
-                {{ order.status }}
-            </p>
+        <a class="hero-button" href="{{ url_for('order_details', order_id=order.id) }}">
+            View Order
+        </a>
 
-            <p>
-                <strong>Payment Status:</strong>
-                {{ order.payment_status }}
-            </p>
-
-        </div>
-
-
-        <a href="{{ url_for('home') }}">
-
-            <button style="
-                background:#d4af37;
-                color:#111;
-                border:none;
-                padding:14px 28px;
-                font-size:16px;
-                font-weight:bold;
-                border-radius:5px;
-                cursor:pointer;
-                margin-top:20px;
-            ">
-                Continue Shopping
-            </button>
-
+        <a class="hero-button btn-outline" href="{{ url_for('shop') }}">
+            Continue Shopping
         </a>
 
     </div>

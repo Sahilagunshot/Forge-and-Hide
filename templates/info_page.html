@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block title %}
+{{ title }} | Forge &amp; Hide
+{% endblock %}
+
+{% block content %}
+
+<style>
+.info-content h2 {
+    font-size: 24px;
+    margin: 34px 0 8px;
+}
+.info-content p {
+    margin: 0 0 14px;
+    color: #444;
+}
+</style>
+
+<div style="max-width:800px;margin:60px auto;padding:0 25px 80px;line-height:1.8;">
+
+    <h1 class="section-title">
+        {{ title }}
+    </h1>
+
+    <div class="info-content" style="margin-top:30px;">
+        {{ content|safe }}
+    </div>
+
+</div>
+
+{% endblock %}

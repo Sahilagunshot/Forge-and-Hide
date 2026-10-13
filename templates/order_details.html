@@ -1,442 +1,151 @@
 {% extends "base.html" %}
 
 {% block title %}
-Order #{{ order.id }} | Forge & Hide
+Order #{{ order.id }} | Forge &amp; Hide
 {% endblock %}
 
 {% block content %}
 
-<h1 class="section-title">
-    Order #{{ order.id }}
-</h1>
-
-<div style="
-    margin-top:40px;
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-">
-
-    <h2>Order Information</h2>
-
-    <p>
-        <strong>Order Date:</strong>
-        {{ order.created_at }}
-    </p>
-
-
-    <!-- ORDER STATUS -->
-
-    <p>
-        <strong>Order Status:</strong>
-
-        {% if order.status == "Pending" %}
-
-            <span style="
-                color:#f59e0b;
-                font-weight:bold;
-            ">
-                🟡 Pending
-            </span>
-
-        {% elif order.status == "Processing" %}
-
-            <span style="
-                color:#3b82f6;
-                font-weight:bold;
-            ">
-                🔵 Processing
-            </span>
-
-        {% elif order.status == "Shipped" %}
-
-            <span style="
-                color:#a855f7;
-                font-weight:bold;
-            ">
-                🟣 Shipped
-            </span>
-
-        {% elif order.status == "Delivered" %}
-
-            <span style="
-                color:#22c55e;
-                font-weight:bold;
-            ">
-                🟢 Delivered
-            </span>
-
-        {% elif order.status == "Cancelled" %}
-
-            <span style="
-                color:#ef4444;
-                font-weight:bold;
-            ">
-                🔴 Cancelled
-            </span>
-
-        {% else %}
-
-            {{ order.status }}
-
-        {% endif %}
-
-    </p>
-
-
-    <!-- PAYMENT STATUS -->
-
-    <p>
-        <strong>Payment Status:</strong>
-
-        {% if order.payment_status == "Paid" %}
-
-            <span style="
-                color:#22c55e;
-                font-weight:bold;
-            ">
-                🟢 Paid
-            </span>
-
-        {% elif order.payment_status == "Pending" %}
-
-            <span style="
-                color:#f59e0b;
-                font-weight:bold;
-            ">
-                🟡 Pending
-            </span>
-
-        {% elif order.payment_status == "Failed" %}
-
-            <span style="
-                color:#ef4444;
-                font-weight:bold;
-            ">
-                🔴 Failed
-            </span>
-
-        {% else %}
-
-            {{ order.payment_status }}
-
-        {% endif %}
-
-    </p>
-
-    <p>
-
-        <strong>Payment Method:</strong>
-
-        {% if order.payment_method == "COD" %}
-
-            Cash on Delivery
-
-        {% elif order.payment_method == "ONLINE" %}
-
-            Online Payment
-
-        {% else %}
-
-            {{ order.payment_method }}
-
-        {% endif %}
-
-    </p>
-
+<div class="page-head">
+    <h1>Order #{{ order.id }}</h1>
 </div>
 
+<div class="shell-narrow" style="margin-top:30px;">
 
-<div style="
-    margin-top:30px;
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-">
-<!-- =========================
-     ORDER TIMELINE
-========================= -->
 
-<div style="
-    margin-top:30px;
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-">
+    <div class="box">
 
-    <h2>Order Journey</h2>
+        <h2>Order Information</h2>
 
-    <div style="
-        margin-top:30px;
-        display:flex;
-        justify-content:space-between;
-        align-items:flex-start;
-        gap:10px;
-        position:relative;
-    ">
+        <dl class="kv">
 
-        <!-- PENDING -->
+            <dt>Order Date</dt>
+            <dd>{{ order.created_at.strftime('%d %b %Y, %H:%M') if order.created_at else '' }}</dd>
 
-        <div style="
-            text-align:center;
-            flex:1;
-        ">
+            <dt>Order Status</dt>
+            <dd><span class="pill pill-{{ order.status|lower }}">{{ order.status }}</span></dd>
 
-            <div style="
-                font-size:28px;
-            ">
-                {% if order.status in ["Pending", "Processing", "Shipped", "Delivered"] %}
-                    🟢
-                {% else %}
-                    ⚪
-                {% endif %}
-            </div>
+            <dt>Payment Status</dt>
+            <dd><span class="pill pill-{{ order.payment_status|lower }}">{{ order.payment_status }}</span></dd>
 
-            <strong>
-                Pending
-            </strong>
+            <dt>Payment Method</dt>
+            <dd>
+                {% if order.payment_method == "COD" %}Cash on Delivery
+                {% elif order.payment_method == "ONLINE" %}Online Payment
+                {% else %}{{ order.payment_method }}{% endif %}
+            </dd>
+
+        </dl>
+
+    </div>
+
+
+    <div class="box">
+
+        <h2>Order Journey</h2>
+
+        <div class="timeline">
+
+            <div class="step {% if order.status in ['Pending','Processing','Shipped','Delivered'] %}done{% endif %}">Pending</div>
+
+            <div class="step {% if order.status in ['Processing','Shipped','Delivered'] %}done{% endif %}">Processing</div>
+
+            <div class="step {% if order.status in ['Shipped','Delivered'] %}done{% endif %}">Shipped</div>
+
+            <div class="step {% if order.status == 'Delivered' %}done{% endif %}">Delivered</div>
 
         </div>
 
+        {% if order.status == "Cancelled" %}
+        <div class="cancel-note">This order has been cancelled.</div>
+        {% endif %}
 
-        <!-- PROCESSING -->
+    </div>
 
-        <div style="
-            text-align:center;
-            flex:1;
-        ">
 
-            <div style="
-                font-size:28px;
-            ">
-                {% if order.status in ["Processing", "Shipped", "Delivered"] %}
-                    🟢
-                {% else %}
-                    ⚪
-                {% endif %}
+    <div class="box">
+
+        <h2>Products</h2>
+
+        {% for item in order.items %}
+
+        <div class="item-row">
+
+            {% if item.product and item.product.image %}
+            <img
+                src="{{ url_for('static', filename='uploads/' + item.product.image) }}"
+                alt="{{ item.product.name }}"
+            >
+            {% endif %}
+
+            <div class="grow">
+
+                <strong>
+                    {% if item.product %}{{ item.product.name }}{% else %}Product no longer available{% endif %}
+                </strong>
+
+                <div class="muted">
+                    Qty {{ item.quantity }} &nbsp;·&nbsp; ₹ {{ item.price }}
+                </div>
+
             </div>
 
-            <strong>
-                Processing
-            </strong>
+            <strong>₹ {{ item.price * item.quantity }}</strong>
 
         </div>
 
+        {% endfor %}
 
-        <!-- SHIPPED -->
-
-        <div style="
-            text-align:center;
-            flex:1;
-        ">
-
-            <div style="
-                font-size:28px;
-            ">
-                {% if order.status in ["Shipped", "Delivered"] %}
-                    🟢
-                {% else %}
-                    ⚪
-                {% endif %}
-            </div>
-
-            <strong>
-                Shipped
-            </strong>
-
-        </div>
-
-
-        <!-- DELIVERED -->
-
-        <div style="
-            text-align:center;
-            flex:1;
-        ">
-
-            <div style="
-                font-size:28px;
-            ">
-                {% if order.status == "Delivered" %}
-                    🟢
-                {% else %}
-                    ⚪
-                {% endif %}
-            </div>
-
-            <strong>
-                Delivered
-            </strong>
-
+        <div class="summary-total">
+            <strong>Grand Total</strong>
+            <strong>₹ {{ order.total_amount }}</strong>
         </div>
 
     </div>
 
 
-    <!-- CANCELLED -->
+    <div class="box">
 
-    {% if order.status == "Cancelled" %}
+        <h2>Shipping Information</h2>
 
-    <div style="
-        margin-top:30px;
-        padding:15px;
-        background:#2a1111;
-        border:1px solid #7f1d1d;
-        border-radius:8px;
-        color:#ef4444;
-        font-weight:bold;
-        text-align:center;
-    ">
-        🔴 This order has been cancelled.
+        <dl class="kv">
+
+            <dt>Name</dt><dd>{{ order.shipping_name }}</dd>
+            <dt>Phone</dt><dd>{{ order.shipping_phone }}</dd>
+            <dt>Address</dt><dd>{{ order.shipping_address }}</dd>
+            <dt>City</dt><dd>{{ order.city }}</dd>
+            <dt>State</dt><dd>{{ order.state }}</dd>
+            <dt>Pincode</dt><dd>{{ order.pincode }}</dd>
+
+        </dl>
+
     </div>
 
-    {% endif %}
 
-</div>
+    <div class="order-actions" style="margin-top:30px;">
 
-    <h2>Products</h2>
-
-    {% for item in order.items %}
-
-<div style="
-    display:flex;
-    align-items:center;
-    gap:25px;
-    padding:20px 0;
-    border-bottom:1px solid #333;
-">
-
-    {% if item.product %}
-
-        {% if item.product.image %}
-
-        <img
-            src="{{ url_for(
-                'static',
-                filename='uploads/' + item.product.image
-            ) }}"
-            width="120"
-            style="border-radius:8px;"
-            alt="{{ item.product.name }}"
-        >
-
-        {% endif %}
-
-        <div>
-
-            <h3>
-                {{ item.product.name }}
-            </h3>
-
-            <p>
-                Quantity:
-                {{ item.quantity }}
-            </p>
-
-            <p>
-                Price:
-                ₹ {{ item.price }}
-            </p>
-
-            <p>
-                Item Total:
-                ₹ {{ item.price * item.quantity }}
-            </p>
-
-        </div>
-
-    {% else %}
-
-        <div>
-
-            <h3>
-                Product No Longer Available
-            </h3>
-
-            <p>
-                Quantity:
-                {{ item.quantity }}
-            </p>
-
-            <p>
-                Price:
-                ₹ {{ item.price }}
-            </p>
-
-            <p>
-                Item Total:
-                ₹ {{ item.price * item.quantity }}
-            </p>
-
-        </div>
-
-    {% endif %}
-
-</div>
-
-{% endfor %}
-
-    <h2 style="margin-top:30px;">
-        Grand Total:
-        ₹ {{ order.total_amount }}
-    </h2>
-
-</div>
-
-
-<div style="
-    margin-top:30px;
-    background:#1a1a1a;
-    padding:30px;
-    border-radius:10px;
-    border:1px solid #333;
-">
-
-    <h2>Shipping Information</h2>
-
-    <p>
-        <strong>Name:</strong>
-        {{ order.shipping_name }}
-    </p>
-
-    <p>
-        <strong>Phone:</strong>
-        {{ order.shipping_phone }}
-    </p>
-
-    <p>
-        <strong>Address:</strong>
-        {{ order.shipping_address }}
-    </p>
-
-    <p>
-        <strong>City:</strong>
-        {{ order.city }}
-    </p>
-
-    <p>
-        <strong>State:</strong>
-        {{ order.state }}
-    </p>
-
-    <p>
-        <strong>Pincode:</strong>
-        {{ order.pincode }}
-    </p>
-
-</div>
-
-
-<div style="margin-top:30px;">
-
-    <a href="{{ url_for('my_orders') }}">
-        <button class="hero-button">
+        <a class="hero-button btn-outline" href="{{ url_for('my_orders') }}">
             ← Back to My Orders
-        </button>
-    </a>
+        </a>
+
+        {% if order.status == "Pending" and order.payment_status != "Paid" %}
+
+        <form method="POST" action="{{ url_for('cancel_order', order_id=order.id) }}" onsubmit="return confirm('Cancel this order?');">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="hero-button btn-danger">
+                Cancel Order
+            </button>
+        </form>
+
+        {% elif order.status != "Cancelled" and order.status != "Delivered" %}
+
+        <p class="muted" style="font-size:14px;">
+            To cancel or change this order, please contact us.
+        </p>
+
+        {% endif %}
+
+    </div>
 
 </div>
 

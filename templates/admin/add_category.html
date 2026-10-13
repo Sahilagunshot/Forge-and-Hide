@@ -1,35 +1,40 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
-    <title>Add Category</title>
-</head>
+{% block title %}
+Add Category | Admin | Forge &amp; Hide
+{% endblock %}
 
-<body>
+{% block content %}
 
-<h1>Add Category</h1>
+<div class="page-head">
+    <h1>Add Category</h1>
+</div>
 
-<form method="POST">
+<div class="shell-narrow" style="margin-top:30px;">
 
-    <input
-        type="text"
-        name="name"
-        placeholder="Category Name"
-        required>
+    <form method="POST" class="box">
 
-    <br><br>
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 
-    <button type="submit">
-        Save Category
-    </button>
+        <div class="field">
+            <label for="name">Category Name</label>
+            <input type="text" id="name" name="name" required>
+        </div>
 
-</form>
+        <div class="order-actions">
 
-<br>
+            <button type="submit" class="hero-button">
+                Save Category
+            </button>
 
-<a href="{{ url_for('categories') }}">
-    Back
-</a>
+            <a class="hero-button btn-outline" href="{{ url_for('categories') }}">
+                Back
+            </a>
 
-</body>
-</html>
+        </div>
+
+    </form>
+
+</div>
+
+{% endblock %}

@@ -1,110 +1,91 @@
-<!DOCTYPE html>
-<html>
+{% extends "base.html" %}
 
-<head>
+{% block title %}
+Categories | Admin | Forge &amp; Hide
+{% endblock %}
 
-    <title>Categories</title>
+{% block content %}
 
-    <style>
+<div class="page-head">
+    <h1>Categories</h1>
+</div>
 
-        body{
-            font-family:Arial;
-            background:#111;
-            color:white;
-            padding:40px;
-        }
+<div class="shell">
 
-        table{
-            width:100%;
-            border-collapse:collapse;
-            margin-top:25px;
-        }
+    <div class="admin-top">
 
-        th,td{
-            border:1px solid #444;
-            padding:12px;
-            text-align:center;
-        }
+        <a class="hero-button btn-sm" href="{{ url_for('add_category') }}">
+            + Add Category
+        </a>
 
-        th{
-            background:#222;
-            color:#d4af37;
-        }
+        <a class="link-btn" href="{{ url_for('admin_dashboard') }}">
+            ← Dashboard
+        </a>
 
-        a{
-            color:white;
-            text-decoration:none;
-        }
+    </div>
 
-        .btn{
-            padding:8px 15px;
-            background:green;
-            border-radius:6px;
-        }
+    {% if categories %}
 
-    </style>
+    <div style="overflow-x:auto;">
 
-</head>
+        <table class="table">
 
-<body>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Name</th>
+                    <th>Slug</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
 
-<h1>Categories</h1>
+            <tbody>
 
-<p>
+                {% for category in categories %}
 
-<a
-class="btn"
-href="{{ url_for('add_category') }}">
-+ Add Category
-</a>
+                <tr>
 
-</p>
+                    <td>#{{ category.id }}</td>
 
-<table>
+                    <td>{{ category.name }}</td>
 
-<tr>
+                    <td class="muted">{{ category.slug }}</td>
 
-<th>ID</th>
-<th>Name</th>
-<th>Slug</th>
-<th>Action</th>
+                    <td>
 
-</tr>
+                        <div class="table-actions">
 
-{% for category in categories %}
+                            <a class="hero-button btn-outline btn-sm" href="{{ url_for('edit_category', id=category.id) }}">
+                                Edit
+                            </a>
 
-<tr>
+                            <form method="POST" action="{{ url_for('delete_category', id=category.id) }}" onsubmit="return confirm('Delete this category?');">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="hero-button btn-danger btn-sm">
+                                    Delete
+                                </button>
+                            </form>
 
-<td>{{ category.id }}</td>
+                        </div>
 
-<td>{{ category.name }}</td>
+                    </td>
 
-<td>{{ category.slug }}</td>
+                </tr>
 
-<td>
+                {% endfor %}
 
-<a
-class="btn"
-href="{{ url_for('edit_category', id=category.id) }}">
-Edit
-</a>
+            </tbody>
 
-<a
-class="btn"
-style="background:red;"
-href="{{ url_for('delete_category', id=category.id) }}"
-onclick="return confirm('Delete this category?')">
-Delete
-</a>
+        </table>
 
-</td>
+    </div>
 
-</tr>
+    {% else %}
 
-{% endfor %}
+    <p class="empty-note">No categories yet.</p>
 
-</table>
+    {% endif %}
 
-</body>
+</div>
 
-</html>
+{% endblock %}

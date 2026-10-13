@@ -1,81 +1,91 @@
 {% extends "base.html" %}
 
 {% block title %}
-Shop | Forge & Hide
+Shop | Forge &amp; Hide
 {% endblock %}
 
 {% block content %}
 
-<h1 class="section-title">
+{% set current = (categories|selectattr('slug','equalto',selected_category)|list|first) if selected_category else none %}
 
-    Shop Collection
+<div class="page-head">
 
-</h1>
+    <h1>{% if current %}{{ current.name }}{% else %}The Collection{% endif %}</h1>
+
+    <p>Handcrafted leather, made to last a lifetime.</p>
+
+</div>
+
 
 <div class="shop-categories">
 
-```
-<a href="{{ url_for('shop') }}">
-    All
-</a>
+    <a href="{{ url_for('shop') }}" class="{% if not selected_category %}active{% endif %}">
+        All
+    </a>
 
-{% for category in categories %}
+    {% for category in categories %}
 
-    <a href="{{ url_for('shop', category=category.slug) }}">
+    <a href="{{ url_for('shop', category=category.slug) }}"
+       class="{% if selected_category == category.slug %}active{% endif %}">
         {{ category.name }}
     </a>
 
-{% endfor %}
-```
+    {% endfor %}
 
 </div>
 
 
-<div class="product-grid">
+<div class="shop-wrap">
 
-{% for product in products %}
+    {% if products %}
 
-<div class="product-card">
+    <div class="shop-grid">
 
-    {% if product.image %}
+        {% for product in products %}
 
-    <img
-    src="{{ url_for('static', filename='uploads/' + product.image) }}">
+        {% set gallery = product.images|sort(attribute='sort_order') %}
 
-    {% endif %}
+        <div class="p-tile">
 
-    <div class="product-info">
+            <a class="p-media" href="{{ url_for('product_detail', slug=product.slug) }}">
 
-        <h3>
+                {% if product.image %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + product.image) }}"
+                    alt="{{ product.name }}"
+                >
+                {% endif %}
 
-            {{ product.name }}
+                {% if gallery %}
+                <img
+                    src="{{ url_for('static', filename='uploads/' + gallery[0].image) }}"
+                    alt="{{ product.name }}"
+                >
+                {% endif %}
 
-        </h3>
+            </a>
 
-        <p>
+            <a class="p-name" href="{{ url_for('product_detail', slug=product.slug) }}">
+                {{ product.name }}
+            </a>
 
-            ₹ {{ product.price }}
+            <span class="p-price">₹ {{ product.price }}</span>
 
-        </p>
+            {% if product.stock <= 0 %}
+            <span class="p-soldout">Sold out</span>
+            {% endif %}
 
-        <br>
+        </div>
 
-        <a
-        href="{{ url_for('product_detail', slug=product.slug) }}">
-
-            <button class="hero-button">
-
-                View Product
-
-            </button>
-
-        </a>
+        {% endfor %}
 
     </div>
 
-</div>
+    {% else %}
 
-{% endfor %}
+    <p class="empty-note">No products in this collection yet.</p>
+
+    {% endif %}
 
 </div>
 
