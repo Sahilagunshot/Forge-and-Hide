@@ -34,7 +34,7 @@ from models import (
 
 app = Flask(__name__)
 app.config.from_object(Config)
-load_dotenv()
+load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
 
 RAZORPAY_KEY_ID = os.getenv("RAZORPAY_KEY_ID")
 RAZORPAY_KEY_SECRET = os.getenv("RAZORPAY_KEY_SECRET")
@@ -657,7 +657,9 @@ def checkout():
                     }
                 )
 
-            except Exception:
+            except Exception as e:
+
+                print(f"RAZORPAY ERROR: {type(e).__name__}: {e}")
 
                 db.session.rollback()
 
