@@ -11,6 +11,113 @@ Forge &amp; Hide | Handcrafted Luxury Leather
      HERO (video ya photo)
 ========================= -->
 
+{% set banners = hero_banners() %}
+
+{% if banners and not hero_video %}
+
+<section class="hero-video" id="heroBanners">
+
+    <div class="hb-track" id="hbTrack">
+
+        {% for b in banners %}
+
+        <div class="hb-slide">
+
+            <img
+                class="hb-img"
+                src="{{ url_for('static', filename='uploads/' + b.file) }}"
+                alt="{{ b.title or 'Forge & Hide' }}"
+            >
+
+            <div class="hb-shade"></div>
+
+            <div class="hb-text">
+
+                {% if b.title %}
+                <p class="hero-eyebrow">Forge &amp; Hide</p>
+                <h1>{{ b.title }}</h1>
+                {% endif %}
+
+                <a class="hero-link" href="{{ url_for('shop') }}">
+                    Explore the Collection
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% if banners|length > 1 %}
+    <div class="hb-dots">
+        {% for b in banners %}
+        <button type="button" class="{% if loop.first %}active{% endif %}" aria-label="Slide {{ loop.index }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</section>
+
+<script>
+(function () {
+
+    var hero = document.getElementById("heroBanners");
+    var track = document.getElementById("hbTrack");
+    if (!hero || !track) { return; }
+
+    var total = track.children.length;
+    var dots = hero.querySelectorAll(".hb-dots button");
+    if (total < 2) { return; }
+
+    var current = 0;
+    var timer = null;
+    var startX = null;
+
+    function show(i) {
+        current = (i + total) % total;
+        track.style.transform = "translateX(-" + (current * 100) + "%)";
+        dots.forEach(function (d, n) {
+            d.classList.toggle("active", n === current);
+        });
+    }
+
+    function stop() {
+        if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    function start() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+        stop();
+        timer = setInterval(function () { show(current + 1); }, 5500);
+    }
+
+    dots.forEach(function (d, i) {
+        d.addEventListener("click", function () { show(i); start(); });
+    });
+
+    hero.addEventListener("mouseenter", stop);
+    hero.addEventListener("mouseleave", start);
+
+    hero.addEventListener("touchstart", function (e) {
+        startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    hero.addEventListener("touchend", function (e) {
+        if (startX === null) { return; }
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) { show(current + (dx < 0 ? 1 : -1)); start(); }
+        startX = null;
+    });
+
+    start();
+
+})();
+</script>
+
+{% else %}
+
 <section class="hero-video">
 
     {% if hero_video %}
@@ -51,6 +158,8 @@ Forge &amp; Hide | Handcrafted Luxury Leather
     </div>
 
 </section>
+
+{% endif %}
 
 
 <!-- =========================
@@ -196,7 +305,7 @@ Forge &amp; Hide | Handcrafted Luxury Leather
      MADE TO ORDER
 ========================= -->
 
-{% set appointment_image = category_tiles[-1].image if category_tiles and category_tiles[-1].image else hero_image %}
+{% set appointment_image = mto_photo() or (category_tiles[-1].image if category_tiles and category_tiles[-1].image else hero_image) %}
 
 <section class="appointment">
 

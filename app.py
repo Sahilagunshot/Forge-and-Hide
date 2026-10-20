@@ -2625,6 +2625,75 @@ for _slug in INFO_PAGES:
         endpoint="info_" + _slug.replace("-", "_"),
         view_func=make_info_view(_slug)
     )
+# =========================
+# HOME HERO BANNERS (file se, 16:9 photos)
+# static/uploads me hero-1.jpg, hero-2.jpg ... rakho.
+# Naam me product ka naam likh sakte ho: hero-1-forge-duffle.jpg
+# =========================
+
+import re as hero_re
+
+HERO_BANNER_PATTERN = hero_re.compile(
+    r"^hero-(\d+)(?:-(.+))?\.(jpg|jpeg|png|webp)$",
+    hero_re.IGNORECASE
+)
+
+
+def get_hero_banners():
+
+    banners = []
+
+    try:
+
+        names = os.listdir(app.config["UPLOAD_FOLDER"])
+
+    except OSError:
+
+        return banners
+
+    for name in names:
+
+        match = HERO_BANNER_PATTERN.match(name)
+
+        if not match:
+
+            continue
+
+        number = int(match.group(1))
+
+        label = (match.group(2) or "").replace("-", " ").replace("_", " ")
+
+        banners.append((number, name, label.strip().title()))
+
+    banners.sort()
+
+    return [{"file": b[1], "title": b[2]} for b in banners]
+
+
+def get_made_to_order_photo():
+
+    for extension in ("jpg", "jpeg", "png", "webp"):
+
+        name = f"made-to-order.{extension}"
+
+        if os.path.exists(
+            os.path.join(app.config["UPLOAD_FOLDER"], name)
+        ):
+
+            return name
+
+    return None
+
+
+@app.context_processor
+def inject_home_helpers():
+
+    return {
+        "hero_banners": get_hero_banners,
+        "mto_photo": get_made_to_order_photo
+    }
+
+
 @app.errorhandler(CSRFError)
 def csrf_error(error):
 
