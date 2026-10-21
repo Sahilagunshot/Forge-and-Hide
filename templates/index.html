@@ -38,8 +38,8 @@ Forge &amp; Hide | Handcrafted Luxury Leather
                 <h1>{{ b.title }}</h1>
                 {% endif %}
 
-                <a class="hero-link" href="{{ url_for('shop') }}">
-                    Explore the Collection
+                <a class="hero-link" href="{{ b.link or url_for('shop') }}">
+                    {{ b.button or 'Explore the Collection' }}
                 </a>
 
             </div>
@@ -158,6 +158,118 @@ Forge &amp; Hide | Handcrafted Luxury Leather
     </div>
 
 </section>
+
+{% endif %}
+
+
+<!-- =========================
+     DOOSRA BANNER (admin se, main hero ke neeche)
+========================= -->
+
+{% set banners2 = hero2_banners() %}
+
+{% if banners2 %}
+
+<section class="hero-video" id="heroBanners2">
+
+    <div class="hb-track" id="hbTrack2">
+
+        {% for b in banners2 %}
+
+        <div class="hb-slide">
+
+            <img
+                class="hb-img"
+                src="{{ url_for('static', filename='uploads/' + b.file) }}"
+                alt="{{ b.title or 'Forge & Hide' }}"
+            >
+
+            <div class="hb-shade"></div>
+
+            <div class="hb-text">
+
+                {% if b.title %}
+                <p class="hero-eyebrow">Forge &amp; Hide</p>
+                <h1>{{ b.title }}</h1>
+                {% endif %}
+
+                <a class="hero-link" href="{{ b.link or url_for('shop') }}">
+                    {{ b.button or 'Explore the Collection' }}
+                </a>
+
+            </div>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    {% if banners2|length > 1 %}
+    <div class="hb-dots">
+        {% for b in banners2 %}
+        <button type="button" class="{% if loop.first %}active{% endif %}" aria-label="Slide {{ loop.index }}"></button>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+</section>
+
+<script>
+(function () {
+
+    var hero = document.getElementById("heroBanners2");
+    var track = document.getElementById("hbTrack2");
+    if (!hero || !track) { return; }
+
+    var total = track.children.length;
+    var dots = hero.querySelectorAll(".hb-dots button");
+    if (total < 2) { return; }
+
+    var current = 0;
+    var timer = null;
+    var startX = null;
+
+    function show(i) {
+        current = (i + total) % total;
+        track.style.transform = "translateX(-" + (current * 100) + "%)";
+        dots.forEach(function (d, n) {
+            d.classList.toggle("active", n === current);
+        });
+    }
+
+    function stop() {
+        if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    function start() {
+        if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
+        stop();
+        timer = setInterval(function () { show(current + 1); }, 6500);
+    }
+
+    dots.forEach(function (d, i) {
+        d.addEventListener("click", function () { show(i); start(); });
+    });
+
+    hero.addEventListener("mouseenter", stop);
+    hero.addEventListener("mouseleave", start);
+
+    hero.addEventListener("touchstart", function (e) {
+        startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    hero.addEventListener("touchend", function (e) {
+        if (startX === null) { return; }
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50) { show(current + (dx < 0 ? 1 : -1)); start(); }
+        startX = null;
+    });
+
+    start();
+
+})();
+</script>
 
 {% endif %}
 

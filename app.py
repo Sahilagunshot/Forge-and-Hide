@@ -32,6 +32,9 @@ from models import (
 )
 
 
+from models import HomeBanner
+
+
 app = Flask(__name__)
 app.config.from_object(Config)
 load_dotenv(os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"))
@@ -54,6 +57,18 @@ migrate = Migrate(app, db)
 # CSRF protection ON (token session tak valid, 1 ghante me expire nahi hoga)
 app.config["WTF_CSRF_TIME_LIMIT"] = None
 csrf = CSRFProtect(app)
+
+# Nayi table (home_banners) apne aap ban jati hai.
+# Purani tables aur data ko ye nahi chhedta.
+with app.app_context():
+
+    try:
+
+        db.create_all()
+
+    except Exception as error:
+
+        print("db.create_all skipped:", error)
 
 login_manager = LoginManager()
 login_manager.login_view = "admin_login"
@@ -2689,9 +2704,386 @@ def get_made_to_order_photo():
 def inject_home_helpers():
 
     return {
-        "hero_banners": get_hero_banners,
+        "hero_banners": lambda: get_slides("main"),
+        "hero2_banners": lambda: get_slides("second"),
         "mto_photo": get_made_to_order_photo
     }
+
+
+# =========================
+# ADMIN: HOME BANNERS (hero aur doosra banner)
+# =========================
+
+ALLOWED_BANNER_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
+
+BANNER_GROUPS = {
+    "main": "Main Hero (sabse upar)",
+    "second": "Luxury Jackets Banner (main hero ke neeche, alag bada banner)"
+}
+
+
+def save_banner_image(file_storage):
+    """Photo ko check karke JPG banake save karta hai. Galat file par None."""
+
+    if not file_storage or not file_storage.filename:
+
+        return None
+
+    name = secure_filename(file_storage.filename)
+
+    extension = name.rsplit(".", 1)[-1].lower() if "." in name else ""
+
+    if extension not in ALLOWED_BANNER_EXTENSIONS:
+
+        return None
+
+    from PIL import Image, ImageOps
+
+    try:
+
+        image = Image.open(file_storage.stream)
+        image.load()
+        image = ImageOps.exif_transpose(image)
+
+    except Exception:
+
+        return None
+
+    if image.mode in ("RGBA", "LA", "P"):
+
+        image = image.convert("RGBA")
+
+        background = Image.new("RGB", image.size, (255, 255, 255))
+        background.paste(image, mask=image.split()[-1])
+        image = background
+
+    else:
+
+        image = image.convert("RGB")
+
+    image.thumbnail((2400, 2400))
+
+    filename = f"banner_{uuid.uuid4().hex}.jpg"
+
+    image.save(
+        os.path.join(app.config["UPLOAD_FOLDER"], filename),
+        "JPEG",
+        quality=86,
+        optimize=True
+    )
+
+    return filename
+
+
+def clean_banner_link(value):
+    """Sirf apni site ke (/...) ya http/https links allow hain."""
+
+    value = (value or "").strip()
+
+    if not value or value.startswith("//"):
+
+        return None
+
+    if (
+        value.startswith("/")
+        or value.startswith("https://")
+        or value.startswith("http://")
+    ):
+
+        return value[:300]
+
+    return None
+
+
+def remove_banner_file_if_unused(name):
+
+    if not name or not (
+        name.startswith("banner_") or name.startswith("hero-")
+    ):
+
+        return
+
+    if HomeBanner.query.filter_by(image=name).first():
+
+        return
+
+    path = os.path.join(app.config["UPLOAD_FOLDER"], name)
+
+    if os.path.isfile(path):
+
+        try:
+
+            os.remove(path)
+
+        except OSError:
+
+            pass
+
+
+def get_slides(group):
+    """Admin ki slides hon to wahi, warna (main ke liye) purani files."""
+
+    uploads = app.config["UPLOAD_FOLDER"]
+
+    try:
+
+        total = HomeBanner.query.filter_by(banner_group=group).count()
+
+        rows = HomeBanner.query.filter_by(
+            banner_group=group,
+            is_active=True
+        ).order_by(
+            HomeBanner.sort_order.asc(),
+            HomeBanner.id.asc()
+        ).all()
+
+    except Exception:
+
+        db.session.rollback()
+
+        total = 0
+        rows = []
+
+    slides = []
+
+    for row in rows:
+
+        if not row.image or not os.path.exists(
+            os.path.join(uploads, row.image)
+        ):
+
+            continue
+
+        slides.append({
+            "file": row.image,
+            "title": row.title or "",
+            "button": row.button_text or "Explore the Collection",
+            "link": row.link or url_for("shop")
+        })
+
+    if total == 0 and group == "main":
+
+        for banner in get_hero_banners():
+
+            slides.append({
+                "file": banner["file"],
+                "title": banner["title"],
+                "button": "Explore the Collection",
+                "link": url_for("shop")
+            })
+
+    return slides
+
+
+def fill_banner_from_form(banner):
+
+    banner.title = (request.form.get("title") or "").strip()[:200] or None
+
+    banner.button_text = (
+        (request.form.get("button_text") or "").strip()[:60] or None
+    )
+
+    banner.link = clean_banner_link(request.form.get("link"))
+
+    try:
+
+        banner.sort_order = int(request.form.get("sort_order") or 0)
+
+    except ValueError:
+
+        banner.sort_order = 0
+
+    banner.is_active = bool(request.form.get("is_active"))
+
+
+@app.route("/admin/home-banners")
+@admin_required
+def admin_home_banners():
+
+    groups = []
+
+    for key, label in BANNER_GROUPS.items():
+
+        rows = HomeBanner.query.filter_by(
+            banner_group=key
+        ).order_by(
+            HomeBanner.sort_order.asc(),
+            HomeBanner.id.asc()
+        ).all()
+
+        groups.append({"key": key, "label": label, "rows": rows})
+
+    used = {row.image for row in HomeBanner.query.all()}
+
+    legacy_pending = [
+        b for b in get_hero_banners() if b["file"] not in used
+    ]
+
+    categories = Category.query.order_by(Category.id.asc()).all()
+
+    return render_template(
+        "admin/home_banners.html",
+        groups=groups,
+        legacy_pending=legacy_pending,
+        categories=categories,
+        mto_current=get_made_to_order_photo()
+    )
+
+
+@app.route("/admin/home-banners/add", methods=["POST"])
+@admin_required
+def admin_add_home_banner():
+
+    group = request.form.get("banner_group", "main")
+
+    if group not in BANNER_GROUPS:
+
+        group = "main"
+
+    image = save_banner_image(request.files.get("image"))
+
+    if not image:
+
+        flash("Photo upload karo (JPG, PNG ya WEBP).")
+
+        return redirect(url_for("admin_home_banners"))
+
+    banner = HomeBanner(banner_group=group, image=image)
+
+    fill_banner_from_form(banner)
+
+    db.session.add(banner)
+    db.session.commit()
+
+    flash("Banner jud gaya.")
+
+    return redirect(url_for("admin_home_banners"))
+
+
+@app.route(
+    "/admin/home-banners/<int:banner_id>/update",
+    methods=["POST"]
+)
+@admin_required
+def admin_update_home_banner(banner_id):
+
+    banner = db.get_or_404(HomeBanner, banner_id)
+
+    old_image = banner.image
+
+    fill_banner_from_form(banner)
+
+    new_image = save_banner_image(request.files.get("image"))
+
+    if new_image:
+
+        banner.image = new_image
+
+    db.session.commit()
+
+    if new_image:
+
+        remove_banner_file_if_unused(old_image)
+
+    flash("Banner save ho gaya.")
+
+    return redirect(url_for("admin_home_banners"))
+
+
+@app.route(
+    "/admin/home-banners/<int:banner_id>/delete",
+    methods=["POST"]
+)
+@admin_required
+def admin_delete_home_banner(banner_id):
+
+    banner = db.get_or_404(HomeBanner, banner_id)
+
+    old_image = banner.image
+
+    db.session.delete(banner)
+    db.session.commit()
+
+    remove_banner_file_if_unused(old_image)
+
+    flash("Banner hata diya gaya.")
+
+    return redirect(url_for("admin_home_banners"))
+
+
+@app.route("/admin/home-banners/import", methods=["POST"])
+@admin_required
+def admin_import_home_banners():
+
+    used = {row.image for row in HomeBanner.query.all()}
+
+    added = 0
+
+    for number, banner in enumerate(get_hero_banners(), start=1):
+
+        if banner["file"] in used:
+
+            continue
+
+        db.session.add(HomeBanner(
+            banner_group="main",
+            image=banner["file"],
+            title=banner["title"] or None,
+            sort_order=number,
+            is_active=True
+        ))
+
+        added += 1
+
+    db.session.commit()
+
+    flash(f"{added} purani hero photo admin me aa gayi.")
+
+    return redirect(url_for("admin_home_banners"))
+
+
+@app.route("/admin/home-banners/made-to-order", methods=["POST"])
+@admin_required
+def admin_save_made_to_order_photo():
+
+    uploads = app.config["UPLOAD_FOLDER"]
+
+    def clear_old():
+
+        for extension in ("jpg", "jpeg", "png", "webp"):
+
+            path = os.path.join(uploads, f"made-to-order.{extension}")
+
+            if os.path.exists(path):
+
+                os.remove(path)
+
+    if request.form.get("remove"):
+
+        clear_old()
+
+        flash("Made to Order ki photo hata di gayi.")
+
+        return redirect(url_for("admin_home_banners"))
+
+    name = save_banner_image(request.files.get("image"))
+
+    if not name:
+
+        flash("Photo upload karo (JPG, PNG ya WEBP).")
+
+        return redirect(url_for("admin_home_banners"))
+
+    clear_old()
+
+    os.replace(
+        os.path.join(uploads, name),
+        os.path.join(uploads, "made-to-order.jpg")
+    )
+
+    flash("Made to Order ki photo badal gayi.")
+
+    return redirect(url_for("admin_home_banners"))
 
 
 @app.errorhandler(CSRFError)

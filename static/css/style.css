@@ -1942,3 +1942,180 @@ textarea:focus{
         margin-bottom:12px;
     }
 }
+
+
+/* HERO BANNERS 2 (doosra banner, upar wale ki copy) */
+
+/* =========================================================
+   HERO BANNERS (16:9 photos, slide hote hue)
+   ========================================================= */
+
+#heroBanners2{
+    display:block;
+    position:relative;
+    width:100%;
+    height:min(calc(100vh - 78px),56.25vw);
+    min-height:360px;
+    overflow:hidden;
+    background:#000;
+}
+
+#heroBanners2 .hb-track{
+    display:flex;
+    width:100%;
+    height:100%;
+    transition:transform .9s cubic-bezier(.65,0,.25,1);
+    will-change:transform;
+}
+
+#heroBanners2 .hb-slide{
+    position:relative;
+    flex:0 0 100%;
+    width:100%;
+    height:100%;
+    overflow:hidden;
+}
+
+#heroBanners2 .hb-img{
+    position:absolute;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    object-position:center;
+}
+
+#heroBanners2 .hb-shade{
+    position:absolute;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    background:linear-gradient(0deg,rgba(0,0,0,.6) 0%,rgba(0,0,0,.12) 40%,rgba(0,0,0,0) 65%);
+}
+
+#heroBanners2 .hb-text{
+    position:absolute;
+    left:0;
+    bottom:0;
+    z-index:2;
+    max-width:min(640px,60%);
+    padding:0 0 7vh 6%;
+    color:#fff;
+}
+
+#heroBanners2 .hb-text .hero-eyebrow{color:#fff}
+
+#heroBanners2 .hb-text h1{
+    font-size:clamp(26px,3vw,50px);
+    line-height:1.08;
+    color:#fff;
+    margin-bottom:26px;
+}
+
+#heroBanners2 .hb-dots{
+    position:absolute;
+    right:6%;
+    bottom:22px;
+    z-index:3;
+    display:flex;
+    gap:10px;
+}
+
+#heroBanners2 .hb-dots button{
+    position:relative;
+    width:38px;
+    height:16px;
+    border:0;
+    background:transparent;
+    cursor:pointer;
+    padding:0;
+}
+
+#heroBanners2 .hb-dots button::before{
+    content:"";
+    position:absolute;
+    left:0;
+    right:0;
+    top:7px;
+    height:2px;
+    background:rgba(255,255,255,.4);
+    transition:.3s;
+}
+
+#heroBanners2 .hb-dots button.active::before{background:var(--red)}
+
+@media(max-width:900px){
+
+    #heroBanners2{
+        height:64vw;
+        min-height:260px;
+    }
+
+    #heroBanners2 .hb-text{
+        max-width:92%;
+        padding:0 0 26px 5%;
+    }
+
+    #heroBanners2 .hb-text h1{
+        font-size:22px;
+        margin-bottom:12px;
+    }
+
+    #heroBanners2 .hb-dots{
+        left:5%;
+        right:auto;
+        bottom:6px;
+    }
+}
+/* =========================================================
+   HERO BANNERS: tuning (chaudi frame, bada text)
+   ========================================================= */
+
+#heroBanners2{
+    height:min(calc(100vh - 114px),42.86vw);
+    min-height:750px;
+}
+
+#heroBanners2 .hb-text{
+    max-width:min(760px,62%);
+    padding:0 0 12vh 6%;
+}
+
+#heroBanners2 .hb-text h1{
+    font-size:clamp(34px,4.4vw,76px);
+    margin-bottom:30px;
+}
+
+@media(max-width:900px){
+
+    #heroBanners2{
+        height:64vw;
+        min-height:260px;
+    }
+
+    #heroBanners2 .hb-text{
+        max-width:92%;
+        padding:0 0 26px 5%;
+    }
+
+    #heroBanners2 .hb-text h1{
+        font-size:22px;
+        margin-bottom:12px;
+    }
+}
+
+
+/* =========================================================
+   ADMIN: HOME BANNERS
+   ========================================================= */
+
+.thumb-wide{
+    display:block;
+    width:260px;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    background:var(--paper);
+    margin:6px 0 12px;
+}
