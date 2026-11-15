@@ -277,35 +277,35 @@ Order #{{ order.id }} | Admin | Forge & Hide
 
                     <option
                         value="Pending"
-                        {% if order.status == "Pending" %}selected{% endif %}
+                        {% if (order.status or "")|lower == "pending" %}selected{% endif %}
                     >
                         Pending
                     </option>
 
                     <option
                         value="Processing"
-                        {% if order.status == "Processing" %}selected{% endif %}
+                        {% if (order.status or "")|lower == "processing" %}selected{% endif %}
                     >
                         Processing
                     </option>
 
                     <option
                         value="Shipped"
-                        {% if order.status == "Shipped" %}selected{% endif %}
+                        {% if (order.status or "")|lower == "shipped" %}selected{% endif %}
                     >
                         Shipped
                     </option>
 
                     <option
                         value="Delivered"
-                        {% if order.status == "Delivered" %}selected{% endif %}
+                        {% if (order.status or "")|lower == "delivered" %}selected{% endif %}
                     >
                         Delivered
                     </option>
 
                     <option
                         value="Cancelled"
-                        {% if order.status == "Cancelled" %}selected{% endif %}
+                        {% if (order.status or "")|lower == "cancelled" %}selected{% endif %}
                     >
                         Cancelled
                     </option>
@@ -341,21 +341,21 @@ Order #{{ order.id }} | Admin | Forge & Hide
 
                     <option
                         value="Pending"
-                        {% if order.payment_status == "Pending" %}selected{% endif %}
+                        {% if (order.payment_status or "")|lower == "pending" %}selected{% endif %}
                     >
                         Pending
                     </option>
 
                     <option
                         value="Paid"
-                        {% if order.payment_status == "Paid" %}selected{% endif %}
+                        {% if (order.payment_status or "")|lower == "paid" %}selected{% endif %}
                     >
                         Paid
                     </option>
 
                     <option
                         value="Failed"
-                        {% if order.payment_status == "Failed" %}selected{% endif %}
+                        {% if (order.payment_status or "")|lower == "failed" %}selected{% endif %}
                     >
                         Failed
                     </option>

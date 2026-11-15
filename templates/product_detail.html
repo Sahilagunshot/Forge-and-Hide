@@ -11,6 +11,9 @@
 {% if product.image %}{% set _ = all_images.append(product.image) %}{% endif %}
 {% for g in gallery %}{% set _ = all_images.append(g.image) %}{% endfor %}
 
+{% set viewer_images = [] %}
+{% for img in all_images %}{% set _ = viewer_images.append(url_for('static', filename='uploads/' + img)) %}{% endfor %}
+
 
 <div class="crumbs">
 
@@ -30,7 +33,7 @@
 
     <div class="pd-gallery">
 
-        <div class="pd-main">
+        <div class="pd-main" id="pdFrame" data-plus="bottomright">
 
             {% if all_images %}
             <img
@@ -38,6 +41,8 @@
                 src="{{ url_for('static', filename='uploads/' + all_images[0]) }}"
                 alt="{{ product.name }}"
             >
+
+            <button type="button" class="pd-plus" id="pdPlus" aria-label="Photo bade (full screen) me kholo"></button>
             {% endif %}
 
         </div>
@@ -52,6 +57,7 @@
                 type="button"
                 class="pd-thumb {% if loop.first %}active{% endif %}"
                 data-src="{{ url_for('static', filename='uploads/' + img) }}"
+                data-index="{{ loop.index0 }}"
                 onclick="setMain(this)"
             >
                 <img
@@ -176,7 +182,68 @@
 </section>
 
 
+{% if all_images %}
+
+<!-- ===== FULL SCREEN VIEWER (+ dabane par khulta hai) ===== -->
+
+<div class="pdv" id="pdViewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{ product.name }}">
+
+    <div class="pdv-top">
+
+        <span class="pdv-title">{{ product.name }}</span>
+
+        <span class="pdv-count" id="pdvCount"></span>
+
+        <button type="button" class="pdv-close" id="pdvClose" aria-label="Band karo">&times;</button>
+
+    </div>
+
+    <div class="pdv-body">
+
+        {% if all_images|length > 1 %}
+        <div class="pdv-thumbs" id="pdvThumbs">
+
+            {% for img in all_images %}
+            <button type="button" class="pdv-thumb" aria-label="Photo {{ loop.index }}">
+                <img src="{{ url_for('static', filename='uploads/' + img) }}" alt="">
+            </button>
+            {% endfor %}
+
+        </div>
+        {% endif %}
+
+        <div class="pdv-stage" id="pdvStage">
+
+            <img class="pdv-img" id="pdvImg" alt="{{ product.name }}">
+
+            {% if all_images|length > 1 %}
+            <button type="button" class="pdv-nav pdv-prev" id="pdvPrev" aria-label="Pichli photo">&#8249;</button>
+            <button type="button" class="pdv-nav pdv-next" id="pdvNext" aria-label="Agli photo">&#8250;</button>
+            {% endif %}
+
+            <div class="pdv-tools">
+                <button type="button" id="pdvZoomOut" aria-label="Zoom kam karo">&minus;</button>
+                <button type="button" id="pdvZoomIn" aria-label="Zoom badhao">+</button>
+            </div>
+
+        </div>
+
+    </div>
+
+    <p class="pdv-hint">Photo par click ya scroll se zoom &nbsp;&middot;&nbsp; &larr; &rarr; se photo badlo &nbsp;&middot;&nbsp; Esc se band</p>
+
+</div>
+
+{% endif %}
+
+
+{% if all_images %}
+<script type="application/json" id="pdViewerImages">{{ viewer_images|tojson }}</script>
+{% endif %}
+
 <script>
+
+var pdMainIndex = 0;
 
 function setMain(button) {
 
@@ -186,12 +253,187 @@ function setMain(button) {
         main.src = button.dataset.src;
     }
 
+    pdMainIndex = parseInt(button.dataset.index, 10) || 0;
+
     document.querySelectorAll(".pd-thumb").forEach(function (b) {
         b.classList.remove("active");
     });
 
     button.classList.add("active");
 }
+
+(function () {
+
+    var imageData = document.getElementById("pdViewerImages");
+    var IMAGES = imageData ? JSON.parse(imageData.textContent) : [];
+
+    var viewer = document.getElementById("pdViewer");
+
+    if (!viewer || !IMAGES.length) { return; }
+
+    var frame = document.getElementById("pdFrame");
+    var plus = document.getElementById("pdPlus");
+    var stage = document.getElementById("pdvStage");
+    var img = document.getElementById("pdvImg");
+    var count = document.getElementById("pdvCount");
+    var closeBtn = document.getElementById("pdvClose");
+    var prevBtn = document.getElementById("pdvPrev");
+    var nextBtn = document.getElementById("pdvNext");
+    var zoomInBtn = document.getElementById("pdvZoomIn");
+    var zoomOutBtn = document.getElementById("pdvZoomOut");
+    var thumbs = viewer.querySelectorAll(".pdv-thumb");
+
+    var MAX_ZOOM = 4;
+    var index = 0;
+    var scale = 1;
+    var startX = null;
+    var opener = null;
+
+    function setOrigin(clientX, clientY) {
+        var box = stage.getBoundingClientRect();
+        var x = (clientX - box.left) / box.width * 100;
+        var y = (clientY - box.top) / box.height * 100;
+        x = Math.max(0, Math.min(100, x));
+        y = Math.max(0, Math.min(100, y));
+        img.style.setProperty("--ox", x + "%");
+        img.style.setProperty("--oy", y + "%");
+    }
+
+    function setScale(value) {
+        scale = Math.max(1, Math.min(MAX_ZOOM, value));
+        img.style.setProperty("--z", scale);
+        stage.classList.toggle("zoomed", scale > 1);
+        if (scale === 1) {
+            img.style.setProperty("--ox", "50%");
+            img.style.setProperty("--oy", "50%");
+        }
+    }
+
+    function render() {
+        img.style.opacity = 0;
+        img.src = IMAGES[index];
+        if (img.complete) { img.style.opacity = 1; }
+        count.textContent = (index + 1) + " / " + IMAGES.length;
+        thumbs.forEach(function (t, n) {
+            t.classList.toggle("active", n === index);
+            if (n === index && t.scrollIntoView) {
+                t.scrollIntoView({ block: "nearest", inline: "nearest" });
+            }
+        });
+        setScale(1);
+    }
+
+    img.addEventListener("load", function () { img.style.opacity = 1; });
+
+    function go(step) {
+        index = (index + step + IMAGES.length) % IMAGES.length;
+        render();
+    }
+
+    function openViewer(i) {
+        opener = document.activeElement;
+        index = i || 0;
+        render();
+        viewer.classList.add("open");
+        viewer.setAttribute("aria-hidden", "false");
+        document.body.classList.add("pdv-lock");
+        closeBtn.focus();
+    }
+
+    function closeViewer() {
+        viewer.classList.remove("open");
+        viewer.setAttribute("aria-hidden", "true");
+        document.body.classList.remove("pdv-lock");
+        setScale(1);
+        if (opener && opener.focus) { opener.focus(); }
+    }
+
+    if (plus) {
+        plus.addEventListener("click", function (e) {
+            e.stopPropagation();
+            openViewer(pdMainIndex);
+        });
+    }
+
+    if (frame) {
+        frame.addEventListener("click", function () {
+            openViewer(pdMainIndex);
+        });
+    }
+
+    closeBtn.addEventListener("click", closeViewer);
+
+    thumbs.forEach(function (t, n) {
+        t.addEventListener("click", function () {
+            index = n;
+            render();
+        });
+    });
+
+    if (prevBtn) {
+        prevBtn.addEventListener("click", function (e) { e.stopPropagation(); go(-1); });
+    }
+
+    if (nextBtn) {
+        nextBtn.addEventListener("click", function (e) { e.stopPropagation(); go(1); });
+    }
+
+    zoomInBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setScale(scale + 0.8);
+    });
+
+    zoomOutBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        setScale(scale - 0.8);
+    });
+
+    stage.addEventListener("click", function (e) {
+        if (scale > 1) {
+            setScale(1);
+        } else {
+            setOrigin(e.clientX, e.clientY);
+            setScale(2.5);
+        }
+    });
+
+    stage.addEventListener("wheel", function (e) {
+        e.preventDefault();
+        setOrigin(e.clientX, e.clientY);
+        setScale(scale + (e.deltaY < 0 ? 0.4 : -0.4));
+    }, { passive: false });
+
+    stage.addEventListener("mousemove", function (e) {
+        if (scale > 1) { setOrigin(e.clientX, e.clientY); }
+    });
+
+    stage.addEventListener("touchstart", function (e) {
+        startX = e.touches[0].clientX;
+    }, { passive: true });
+
+    stage.addEventListener("touchmove", function (e) {
+        if (scale > 1 && e.touches.length === 1) {
+            setOrigin(e.touches[0].clientX, e.touches[0].clientY);
+        }
+    }, { passive: true });
+
+    stage.addEventListener("touchend", function (e) {
+        if (startX === null || scale > 1) { startX = null; return; }
+        var dx = e.changedTouches[0].clientX - startX;
+        if (Math.abs(dx) > 50 && IMAGES.length > 1) { go(dx < 0 ? 1 : -1); }
+        startX = null;
+    });
+
+    document.addEventListener("keydown", function (e) {
+        if (!viewer.classList.contains("open")) { return; }
+        if (e.key === "Escape") { closeViewer(); }
+        else if (e.key === "ArrowLeft" && IMAGES.length > 1) { go(-1); }
+        else if (e.key === "ArrowRight" && IMAGES.length > 1) { go(1); }
+        else if (e.key === "+" || e.key === "=") { setScale(scale + 0.8); }
+        else if (e.key === "-") { setScale(scale - 0.8); }
+    });
+
+})();
 
 </script>
 

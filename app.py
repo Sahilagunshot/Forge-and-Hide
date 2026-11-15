@@ -898,11 +898,32 @@ def admin_update_order(order_id):
         order_id=order.id
     )
 
-    old_status = order.status
-    old_payment_status = order.payment_status
+    status_values = {
+        "pending": "Pending",
+        "processing": "Processing",
+        "shipped": "Shipped",
+        "delivered": "Delivered",
+        "cancelled": "Cancelled"
+    }
+    payment_status_values = {
+        "pending": "Pending",
+        "paid": "Paid",
+        "failed": "Failed"
+    }
 
-    new_status = request.form.get("status")
-    new_payment_status = request.form.get("payment_status")
+    old_status = status_values.get(
+        (order.status or "").strip().casefold()
+    )
+    old_payment_status = payment_status_values.get(
+        (order.payment_status or "").strip().casefold()
+    )
+    new_status = status_values.get(
+        (request.form.get("status") or "").strip().casefold()
+    )
+    requested_payment_status = payment_status_values.get(
+        (request.form.get("payment_status") or "").strip().casefold()
+    )
+    payment_method = (order.payment_method or "").strip().upper()
 
     # =========================
     # WHICH STATUS CAN MOVE TO WHICH
@@ -926,38 +947,42 @@ def admin_update_order(order_id):
     # VALIDATE INPUT
     # =========================
 
-    if new_status not in order_flow:
+    if old_status is None:
+
+        flash("The current order status is invalid. Please contact support.")
+        return redirect(details_url)
+
+    if new_status is None:
 
         flash("Invalid order status.")
         return redirect(details_url)
 
-    if new_payment_status not in allowed_payment_statuses:
+    if old_payment_status is None:
 
-        flash("Invalid payment status.")
+        flash("The current payment status is invalid. Please contact support.")
         return redirect(details_url)
 
-    if new_status not in order_flow.get(old_status, [old_status]):
+    if new_status not in order_flow.get(old_status, []):
 
         flash(
             f"An order cannot move from "
-            f"{old_status} to {new_status}."
+            f"{order.status} to {new_status}."
         )
         return redirect(details_url)
 
-    # =========================
-    # PAYMENT STATUS RULES
-    # =========================
+    if payment_method == "ONLINE":
 
-    if (
-        order.payment_method == "ONLINE"
-        and new_payment_status != old_payment_status
-    ):
+        # Payment status is controlled by Razorpay. Ignore the submitted
+        # dropdown value so it cannot block an otherwise valid status change.
+        new_payment_status = old_payment_status
+    else:
 
-        flash(
-            "Online payment status is set automatically "
-            "by Razorpay and cannot be changed here."
-        )
-        return redirect(details_url)
+        new_payment_status = requested_payment_status
+
+        if new_payment_status not in allowed_payment_statuses:
+
+            flash("Invalid payment status.")
+            return redirect(details_url)
 
     if (
         old_status == "Cancelled"
@@ -974,11 +999,11 @@ def admin_update_order(order_id):
     # =========================
 
     stock_held = (
-        not order.stock_restored
+        order.stock_restored is not True
         and (
-            order.payment_method == "COD"
+            payment_method == "COD"
             or (
-                order.payment_method == "ONLINE"
+                payment_method == "ONLINE"
                 and old_payment_status == "Paid"
             )
         )
@@ -1016,13 +1041,16 @@ def admin_update_order(order_id):
     except Exception:
 
         db.session.rollback()
+        app.logger.exception(
+            "Failed to update order %s status/payment", order.id
+        )
 
         flash("Order could not be updated. Please try again.")
         return redirect(details_url)
 
     if (
         cancelling
-        and order.payment_method == "ONLINE"
+        and payment_method == "ONLINE"
         and old_payment_status == "Paid"
     ):
 

@@ -359,3 +359,32 @@ class ProductImage(db.Model):
 
     def __repr__(self):
         return f"<ProductImage {self.image}>"
+
+
+
+class HomeBanner(db.Model):
+    __tablename__ = "home_banners"
+
+    id = db.Column(db.Integer, primary_key=True)
+
+    banner_group = db.Column(
+        db.String(20),
+        nullable=False,
+        default="main"
+    )
+
+    image = db.Column(db.String(300), nullable=False)
+
+    title = db.Column(db.String(200))
+
+    button_text = db.Column(db.String(60))
+
+    link = db.Column(db.String(300))
+
+    sort_order = db.Column(db.Integer, default=0)
+
+    is_active = db.Column(
+        db.Boolean,
+        default=True,
+        nullable=False
+    )

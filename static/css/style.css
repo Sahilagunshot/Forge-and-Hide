@@ -14,7 +14,6 @@
     --serif:"Cormorant Garamond","Playfair Display",Georgia,"Times New Roman",serif;
     --sans:"Jost","Helvetica Neue",Arial,sans-serif;
 }
-
 *{margin:0;padding:0;box-sizing:border-box}
 
 html{scroll-behavior:smooth}
@@ -2050,7 +2049,7 @@ textarea:focus{
 
     #heroBanners2{
         height:64vw;
-        min-height:260px;
+        min-height:60px;
     }
 
     #heroBanners2 .hb-text{
@@ -2075,7 +2074,7 @@ textarea:focus{
 
 #heroBanners2{
     height:min(calc(100vh - 114px),42.86vw);
-    min-height:750px;
+    min-height:3000px;
 }
 
 #heroBanners2 .hb-text{
@@ -2118,4 +2117,295 @@ textarea:focus{
     object-fit:cover;
     background:var(--paper);
     margin:6px 0 12px;
+}
+
+
+/* =========================================================
+   PRODUCT PAGE: "+" aur full screen viewer (royal, White)
+   ========================================================= */
+
+.pd-main{
+    position:relative;
+    cursor:zoom-in;
+}
+
+/* "+" button position is selected by the product page's data-plus value. */
+.pd-plus{
+    position:absolute;
+    z-index:2;
+    width:84px;
+    height:84px;
+    border-radius:50%;
+    border:1px solid rgba(17,17,17,.55);
+    background:rgba(255,255,255,.82);
+    cursor:pointer;
+    padding:0;
+    transition:opacity .35s ease, transform .35s ease, background .3s, border-color .3s;
+}
+
+.pd-plus::before,
+.pd-plus::after{
+    content:"";
+    position:absolute;
+    top:50%;
+    left:50%;
+    background:var(--ink);
+    transform:translate(-50%,-50%);
+    transition:background .3s;
+}
+
+.pd-plus::before{width:30px;height:1px}
+.pd-plus::after{width:1px;height:30px}
+
+.pd-plus:hover{
+    background:var(--red);
+    border-color:var(--red);
+}
+
+.pd-plus:hover::before,
+.pd-plus:hover::after{background:#fff}
+
+.pd-main[data-plus="center"] .pd-plus{
+    top:50%;
+    left:50%;
+    opacity:0;
+    transform:translate(-50%,-50%) scale(.9);
+}
+
+.pd-main[data-plus="center"]:hover .pd-plus,
+.pd-main[data-plus="center"] .pd-plus:focus-visible{
+    opacity:1;
+    transform:translate(-50%,-50%) scale(1);
+}
+
+.pd-main[data-plus="topright"] .pd-plus{top:20px;right:20px}
+.pd-main[data-plus="topleft"] .pd-plus{top:20px;left:20px}
+.pd-main[data-plus="bottomleft"] .pd-plus{bottom:20px;left:20px}
+.pd-main[data-plus="bottomright"] .pd-plus{bottom:20px;right:20px}
+
+/* touch screen par hover nahi hota, isliye "+" neeche beech me hamesha */
+@media(hover:none){
+
+    .pd-main[data-plus="center"] .pd-plus{
+        top:auto;
+        bottom:18px;
+        left:50%;
+        opacity:1;
+        transform:translateX(-50%) scale(.7);
+    }
+}
+
+body.pdv-lock{overflow:hidden}
+
+.pdv{
+    position:fixed;
+    top:0;
+    left:0;
+    right:0;
+    bottom:0;
+    z-index:5000;
+    background:#fff;
+    color:var(--ink);
+    display:none;
+    flex-direction:column;
+}
+
+.pdv.open{display:flex}
+
+.pdv-top{
+    flex:0 0 auto;
+    display:flex;
+    align-items:center;
+    gap:20px;
+    padding:14px 28px;
+    border-bottom:1px solid rgba(17,17,17,.12);
+}
+
+.pdv-title{
+    font-family:var(--serif);
+    font-size:24px;
+    letter-spacing:.04em;
+}
+
+.pdv-count{
+    margin-left:auto;
+    font-size:12px;
+    letter-spacing:.28em;
+    color:rgba(17,17,17,.6);
+}
+
+.pdv-close{
+    width:48px;
+    height:48px;
+    border:1px solid rgba(17,17,17,.35);
+    background:transparent;
+    color:var(--ink);
+    font-size:30px;
+    font-weight:300;
+    line-height:1;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.pdv-close:hover{
+    background:var(--red);
+    border-color:var(--red);
+}
+
+.pdv-body{
+    flex:1;
+    min-height:0;
+    display:flex;
+}
+
+.pdv-thumbs{
+    flex:0 0 112px;
+    overflow-y:auto;
+    padding:16px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    border-right:1px solid rgba(17,17,17,.12);
+    scrollbar-width:thin;
+}
+
+.pdv-thumb{
+    flex:0 0 auto;
+    padding:0;
+    border:1px solid transparent;
+    background:#fff;
+    aspect-ratio:4/5;
+    opacity:.5;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.pdv-thumb img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:cover;
+}
+
+.pdv-thumb:hover{opacity:.9}
+
+.pdv-thumb.active{
+    opacity:1;
+    border-color:var(--red);
+}
+
+.pdv-stage{
+    position:relative;
+    flex:1;
+    min-width:0;
+    overflow:hidden;
+    cursor:zoom-in;
+    background:#fff;
+}
+
+.pdv-stage.zoomed{cursor:zoom-out}
+
+/* photo poori jagah bharti hai (bada), kategi nahi */
+.pdv-img{
+    display:block;
+    width:100%;
+    height:100%;
+    object-fit:contain;
+    transform:scale(var(--z,1));
+    transform-origin:var(--ox,50%) var(--oy,50%);
+    transition:transform .3s ease, opacity .35s ease;
+    user-select:none;
+    -webkit-user-drag:none;
+}
+
+.pdv-nav{
+    position:absolute;
+    top:50%;
+    transform:translateY(-50%);
+    z-index:3;
+    width:64px;
+    height:64px;
+    border-radius:50%;
+    border:1px solid rgba(17,17,17,.25);
+    background:rgba(255,255,255,.9);
+    color:var(--ink);
+    font-size:38px;
+    font-weight:300;
+    line-height:1;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.pdv-nav:hover{
+    background:var(--red);
+    border-color:var(--red);
+}
+
+.pdv-prev{left:24px}
+.pdv-next{right:24px}
+
+.pdv-stage.zoomed .pdv-nav{display:none}
+
+.pdv-tools{
+    position:absolute;
+    right:24px;
+    bottom:20px;
+    z-index:3;
+    display:flex;
+    gap:10px;
+}
+
+.pdv-tools button{
+    width:48px;
+    height:48px;
+    border:1px solid rgba(17,17,17,.25);
+    background:rgba(255,255,255,.9);
+    color:var(--ink);
+    font-size:26px;
+    font-weight:300;
+    line-height:1;
+    cursor:pointer;
+    transition:.3s;
+}
+
+.pdv-tools button:hover{
+    background:var(--red);
+    border-color:var(--red);
+}
+
+.pdv-hint{
+    flex:0 0 auto;
+    text-align:center;
+    font-size:11px;
+    letter-spacing:.2em;
+    text-transform:uppercase;
+    color:rgba(17,17,17,.55);
+    padding:10px 16px 14px;
+}
+
+@media(max-width:900px){
+
+    .pdv-top{padding:10px 14px}
+
+    .pdv-title{font-size:17px}
+
+    .pdv-body{flex-direction:column-reverse}
+
+    .pdv-thumbs{
+        flex:0 0 auto;
+        flex-direction:row;
+        overflow-x:auto;
+        overflow-y:hidden;
+        border-right:0;
+        border-top:1px solid rgba(17,17,17,.12);
+        padding:10px;
+    }
+
+    .pdv-thumb{flex:0 0 64px}
+
+    .pdv-nav{display:none}
+
+    .pdv-tools{right:12px;bottom:12px}
+
+    .pdv-hint{display:none}
 }

@@ -1,0 +1,196 @@
+{% extends "base.html" %}
+
+{% block title %}
+Home Banners | Admin | Forge &amp; Hide
+{% endblock %}
+
+{% macro banner_form(row, group_key, action, label) %}
+
+<form method="POST" action="{{ action }}" enctype="multipart/form-data">
+
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    {% if not row %}
+    <input type="hidden" name="banner_group" value="{{ group_key }}">
+    {% endif %}
+
+    <div class="field-row">
+
+        <div class="field">
+            <label>Title (khali = koi title nahi)</label>
+            <input type="text" name="title" value="{{ row.title if row and row.title else '' }}">
+        </div>
+
+        <div class="field">
+            <label>Order (chhota number pehle dikhta hai)</label>
+            <input type="number" name="sort_order" value="{{ (row.sort_order if row else 0) or 0 }}">
+        </div>
+
+    </div>
+
+    <div class="field-row">
+
+        <div class="field">
+            <label>Button ka text (khali = Explore the Collection)</label>
+            <input type="text" name="button_text" value="{{ row.button_text if row and row.button_text else '' }}">
+        </div>
+
+        <div class="field">
+            <label>Button ka link (khali = /shop)</label>
+            <input type="text" name="link" list="link-options" value="{{ row.link if row and row.link else '' }}">
+        </div>
+
+    </div>
+
+    <div class="field">
+
+        <label>
+            {% if row %}Photo badalni ho to nayi photo chuno{% else %}Photo (zaroori){% endif %}
+        </label>
+
+        {% if row %}
+        <img class="thumb-wide" src="{{ url_for('static', filename='uploads/' + row.image) }}" alt="">
+        {% endif %}
+
+        <input type="file" name="image" accept="image/png,image/jpeg,image/webp" {% if not row %}required{% endif %}>
+
+    </div>
+
+    <div class="field check-field">
+        <label>
+            <input type="checkbox" name="is_active" {% if not row or row.is_active %}checked{% endif %}>
+            Site par dikhao
+        </label>
+    </div>
+
+    <button type="submit" class="hero-button btn-sm">{{ label }}</button>
+
+</form>
+
+{% endmacro %}
+
+
+{% block content %}
+
+<div class="page-head">
+    <h1>Home Banners</h1>
+    <p>Home page ke hero aur doosre banner yahin se badlo.</p>
+</div>
+
+<div class="shell-narrow">
+
+    <div class="admin-top">
+        <a class="link-btn" href="{{ url_for('admin_dashboard') }}">&larr; Dashboard</a>
+        <a class="link-btn" href="/" target="_blank">Site dekho</a>
+    </div>
+
+    <datalist id="link-options">
+        <option value="/shop"></option>
+        {% for c in categories %}
+        <option value="{{ url_for('shop', category=c.slug) }}">{{ c.name }}</option>
+        {% endfor %}
+        <option value="/contact"></option>
+    </datalist>
+
+    <p class="muted" style="margin-bottom:24px;line-height:1.8;">
+        Photo ko <strong>16:9 (jaise 1920 x 1080)</strong> me banao, aur product ko
+        <strong>beech ke 60% hisse</strong> me rakho, taaki laptop aur mobile par kate nahi.
+        Upload ki hui photo apne aap chhoti aur tez ho jati hai.
+    </p>
+
+    {% if legacy_pending %}
+    <div class="box">
+
+        <h3 style="margin-bottom:12px;">Purani hero photos</h3>
+
+        <p class="muted" style="margin-bottom:16px;">
+            {{ legacy_pending|length }} photo abhi folder se chal rahi hain
+            ({% for b in legacy_pending %}{{ b.file }}{% if not loop.last %}, {% endif %}{% endfor %}).
+            Unhe admin me laoge to yahin se badal sakoge.
+        </p>
+
+        <form method="POST" action="{{ url_for('admin_import_home_banners') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="hero-button btn-sm">Admin me le aao</button>
+        </form>
+
+    </div>
+    {% endif %}
+
+    {% for group in groups %}
+
+    <h2 class="form-title" style="margin-top:44px;">{{ group.label }}</h2>
+
+    {% if group.key == "second" and not group.rows %}
+    <p class="muted" style="margin-bottom:16px;">
+        Abhi koi banner nahi hai, isliye ye section site par dikhta hi nahi.
+    </p>
+    {% endif %}
+
+    {% for row in group.rows %}
+
+    <div class="box">
+
+        <h3 style="margin-bottom:16px;">
+            Banner {{ loop.index }}
+            {% if not row.is_active %}<span class="muted">(chhupa hua)</span>{% endif %}
+        </h3>
+
+        {{ banner_form(row, group.key, url_for('admin_update_home_banner', banner_id=row.id), 'Save') }}
+
+        <form method="POST" action="{{ url_for('admin_delete_home_banner', banner_id=row.id) }}" onsubmit="return confirm('Ye banner hataein?');" style="margin-top:12px;">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+            <button type="submit" class="hero-button btn-danger btn-sm">Banner hatao</button>
+        </form>
+
+    </div>
+
+    {% endfor %}
+
+    <div class="box">
+
+        <h3 style="margin-bottom:16px;">Naya banner jodo</h3>
+
+        {{ banner_form(none, group.key, url_for('admin_add_home_banner'), 'Jodo') }}
+
+    </div>
+
+    {% endfor %}
+
+
+    <h2 class="form-title" style="margin-top:44px;">Made to Order ki photo</h2>
+
+    <div class="box">
+
+        <form method="POST" action="{{ url_for('admin_save_made_to_order_photo') }}" enctype="multipart/form-data">
+
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <div class="field">
+
+                {% if mto_current %}
+                <img class="thumb-wide" src="{{ url_for('static', filename='uploads/' + mto_current) }}" alt="">
+                {% else %}
+                <p class="muted">Abhi koi khaas photo nahi lagi hai.</p>
+                {% endif %}
+
+                <label>Nayi photo (lambi, landscape)</label>
+                <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
+
+            </div>
+
+            {% if mto_current %}
+            <div class="field check-field">
+                <label><input type="checkbox" name="remove"> Ye photo hatao</label>
+            </div>
+            {% endif %}
+
+            <button type="submit" class="hero-button btn-sm">Save</button>
+
+        </form>
+
+    </div>
+
+</div>
+
+{% endblock %}
