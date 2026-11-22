@@ -42,16 +42,25 @@ Checkout | Forge &amp; Hide
                     <input type="text" id="city" name="city" required>
                 </div>
 
-                <div class="field">
-                    <label for="state">State</label>
+                                <div class="field">
+                    <label for="state">State / Province / Region</label>
                     <input type="text" id="state" name="state" required>
                 </div>
 
             </div>
 
-            <div class="field">
-                <label for="pincode">Pincode</label>
-                <input type="text" id="pincode" name="pincode" required>
+            <div class="field-row">
+
+                <div class="field">
+                    <label for="pincode">Postal / ZIP Code</label>
+                    <input type="text" id="pincode" name="pincode" required>
+                </div>
+
+                <div class="field">
+                    <label for="country">Country</label>
+                    <input type="text" id="country" name="country" required>
+                </div>
+
             </div>
 
             <div class="field">
@@ -60,7 +69,6 @@ Checkout | Forge &amp; Hide
 
                 <select id="payment_method" name="payment_method" required>
                     <option value="">Select Payment Method</option>
-                    <option value="COD">Cash on Delivery</option>
                     <option value="ONLINE">Online Payment</option>
                 </select>
 

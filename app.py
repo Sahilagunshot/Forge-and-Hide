@@ -66,6 +66,27 @@ with app.app_context():
 
         db.create_all()
 
+        # purani home_banners table me nayi columns (agar nahi hain to) jodo
+        from sqlalchemy import inspect as sa_inspect, text as sa_text
+
+        have = {
+            c["name"] for c in sa_inspect(db.engine).get_columns("home_banners")
+        }
+
+        for column_name, column_type in (
+            ("eyebrow", "VARCHAR(120)"),
+            ("description", "TEXT")
+        ):
+
+            if column_name not in have:
+
+                db.session.execute(sa_text(
+                    "ALTER TABLE home_banners ADD COLUMN "
+                    + column_name + " " + column_type
+                ))
+
+        db.session.commit()
+
     except Exception as error:
 
         print("db.create_all skipped:", error)
@@ -591,6 +612,7 @@ def checkout():
         city = request.form.get("city")
         state = request.form.get("state")
         pincode = request.form.get("pincode")
+        country = (request.form.get("country") or "").strip()
         payment_method = request.form.get("payment_method")
 
         if payment_method == "COD":
@@ -605,7 +627,7 @@ def checkout():
         # VALIDATE PAYMENT METHOD
         # =========================
 
-        if payment_method not in ["COD", "ONLINE"]:
+        if payment_method != "ONLINE":
 
             flash("Please select a valid payment method.")
 
@@ -621,7 +643,8 @@ def checkout():
             shipping_address,
             city,
             state,
-            pincode
+            pincode,
+            country
         ]):
 
             flash("Please fill all shipping details.")
@@ -651,7 +674,8 @@ def checkout():
                 shipping_address=shipping_address,
                 city=city,
                 state=state,
-                pincode=pincode
+                pincode=pincode, 
+                country=country
             )
 
             db.session.add(order)
@@ -739,7 +763,8 @@ def checkout():
             shipping_address=shipping_address,
             city=city,
             state=state,
-            pincode=pincode
+            pincode=pincode, 
+            country=country
         )
 
         db.session.add(order)
@@ -878,9 +903,24 @@ def admin_order_details(order_id):
 @app.after_request
 def add_no_cache_headers(response):
 
-    response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
-    response.headers["Pragma"] = "no-cache"
-    response.headers["Expires"] = "0"
+    path = request.path
+
+    if path.startswith("/static/uploads/"):
+
+        # product and banner photos: keep for 1 day
+        response.headers["Cache-Control"] = "public, max-age=86400"
+
+    elif path.startswith("/static/"):
+
+        # css, js, fonts: keep for 1 hour
+        response.headers["Cache-Control"] = "public, max-age=3600"
+
+    else:
+
+        # pages (cart, checkout, orders, admin): never store
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate, max-age=0"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
 
     return response
 
@@ -2603,7 +2643,7 @@ product cannot be made or delivered, and any amount paid will be refunded.</p>
 <p>Many products are made to order and take around {prod} to prepare before
 shipping.</p>
 <h2>Payments</h2>
-<p>We accept Cash on Delivery and online payments through Razorpay.</p>
+<p>We accept online payments through Razorpay.</p>
 <h2>Liability</h2>
 <p>Our liability for any order is limited to the amount paid for that order.</p>
 <h2>Contact</h2>
@@ -2623,7 +2663,7 @@ delivery with your order number and clear photos (please also keep the unboxing
 video if you have one). We will repair, replace or refund it after checking.</p>
 <h2>Refunds</h2>
 <p>Approved refunds are returned to the original payment method within 5 to 7
-business days. For Cash on Delivery orders, we refund by bank transfer.</p>
+business days.</p>
 """),
 
         "shipping-policy": ("Shipping Policy", f"""
@@ -2733,7 +2773,7 @@ def inject_home_helpers():
 
     return {
         "hero_banners": lambda: get_slides("main"),
-        "hero2_banners": lambda: get_slides("second"),
+        "hero2_banners": lambda: get_jacket_slides(),
         "mto_photo": get_made_to_order_photo
     }
 
@@ -2745,8 +2785,8 @@ def inject_home_helpers():
 ALLOWED_BANNER_EXTENSIONS = {"jpg", "jpeg", "png", "webp"}
 
 BANNER_GROUPS = {
-    "main": "Main Hero (sabse upar)",
-    "second": "Luxury Jackets Banner (main hero ke neeche, alag bada banner)"
+    "main": "Main Hero (top banner)",
+    "second": "Luxury Jackets Section (image left, text right)"
 }
 
 
@@ -2885,6 +2925,8 @@ def get_slides(group):
         slides.append({
             "file": row.image,
             "title": row.title or "",
+            "eyebrow": row.eyebrow or "",
+            "description": row.description or "",
             "button": row.button_text or "Explore the Collection",
             "link": row.link or url_for("shop")
         })
@@ -2903,9 +2945,52 @@ def get_slides(group):
     return slides
 
 
+def get_jacket_slides():
+    """Luxury Jackets 'look' section ki slides (photo + likha hua text)."""
+
+    default_link = url_for("shop")
+
+    category = None
+
+    slides = []
+
+    for item in get_slides("second"):
+
+        link = item["link"]
+
+        if link == default_link:
+
+            if category is None:
+
+                category = Category.query.filter(
+                    Category.name.ilike("%jacket%")
+                ).order_by(Category.id.asc()).first()
+
+            if category is not None:
+
+                link = url_for("shop", category=category.slug)
+
+        slides.append({
+            "file": item["file"],
+            "title": item["title"],
+            "eyebrow": item.get("eyebrow", ""),
+            "description": item.get("description", ""),
+            "button": item["button"],
+            "link": link
+        })
+
+    return slides
+
+
 def fill_banner_from_form(banner):
 
     banner.title = (request.form.get("title") or "").strip()[:200] or None
+
+    banner.eyebrow = (request.form.get("eyebrow") or "").strip()[:120] or None
+
+    banner.description = (
+        (request.form.get("description") or "").strip()[:700] or None
+    )
 
     banner.button_text = (
         (request.form.get("button_text") or "").strip()[:60] or None
@@ -2972,7 +3057,7 @@ def admin_add_home_banner():
 
     if not image:
 
-        flash("Photo upload karo (JPG, PNG ya WEBP).")
+        flash("Upload an image (JPG, PNG, or WEBP).")
 
         return redirect(url_for("admin_home_banners"))
 
@@ -2983,7 +3068,7 @@ def admin_add_home_banner():
     db.session.add(banner)
     db.session.commit()
 
-    flash("Banner jud gaya.")
+    flash("Banner added.")
 
     return redirect(url_for("admin_home_banners"))
 
@@ -3013,7 +3098,7 @@ def admin_update_home_banner(banner_id):
 
         remove_banner_file_if_unused(old_image)
 
-    flash("Banner save ho gaya.")
+    flash("Banner saved.")
 
     return redirect(url_for("admin_home_banners"))
 
@@ -3034,7 +3119,7 @@ def admin_delete_home_banner(banner_id):
 
     remove_banner_file_if_unused(old_image)
 
-    flash("Banner hata diya gaya.")
+    flash("Banner deleted.")
 
     return redirect(url_for("admin_home_banners"))
 
@@ -3065,7 +3150,7 @@ def admin_import_home_banners():
 
     db.session.commit()
 
-    flash(f"{added} purani hero photo admin me aa gayi.")
+    flash(f"Imported {added} legacy hero photo(s) into the admin.")
 
     return redirect(url_for("admin_home_banners"))
 
@@ -3090,7 +3175,7 @@ def admin_save_made_to_order_photo():
 
         clear_old()
 
-        flash("Made to Order ki photo hata di gayi.")
+        flash("Made-to-order photo removed.")
 
         return redirect(url_for("admin_home_banners"))
 
@@ -3098,7 +3183,7 @@ def admin_save_made_to_order_photo():
 
     if not name:
 
-        flash("Photo upload karo (JPG, PNG ya WEBP).")
+        flash("Upload an image (JPG, PNG, or WEBP).")
 
         return redirect(url_for("admin_home_banners"))
 
@@ -3109,7 +3194,7 @@ def admin_save_made_to_order_photo():
         os.path.join(uploads, "made-to-order.jpg")
     )
 
-    flash("Made to Order ki photo badal gayi.")
+    flash("Made-to-order photo updated.")
 
     return redirect(url_for("admin_home_banners"))
 

@@ -221,6 +221,11 @@ class Order(db.Model):
         nullable=False
     )
 
+    country = db.Column(
+        db.String(100),
+        nullable=True
+    )
+
     created_at = db.Column(
         db.DateTime,
         server_default=func.now()
@@ -380,6 +385,10 @@ class HomeBanner(db.Model):
     button_text = db.Column(db.String(60))
 
     link = db.Column(db.String(300))
+
+    eyebrow = db.Column(db.String(120))
+
+    description = db.Column(db.Text)
 
     sort_order = db.Column(db.Integer, default=0)
 

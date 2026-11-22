@@ -163,34 +163,47 @@ Forge &amp; Hide | Handcrafted Luxury Leather
 
 
 <!-- =========================
-     DOOSRA BANNER (admin se, main hero ke neeche)
+     LUXURY JACKETS BANNER (admin-managed, image left, text right, 3D)
 ========================= -->
 
 {% set banners2 = hero2_banners() %}
 
 {% if banners2 %}
 
-<section class="hero-video" id="heroBanners2">
+<section class="lk" id="heroBanners2">
 
-    <div class="hb-track" id="hbTrack2">
+    <div class="lk-track" id="hbTrack2">
 
         {% for b in banners2 %}
 
-        <div class="hb-slide">
+        <div class="lk-slide">
 
-            <img
-                class="hb-img"
-                src="{{ url_for('static', filename='uploads/' + b.file) }}"
-                alt="{{ b.title or 'Forge & Hide' }}"
-            >
+            <div class="lk-stage">
 
-            <div class="hb-shade"></div>
+                <div class="lk-card">
 
-            <div class="hb-text">
+                    <div class="lk-frame"></div>
+
+                    <img
+                        class="lk-photo"
+                        src="{{ url_for('static', filename='uploads/' + b.file) }}"
+                        alt="{{ b.title or 'Luxury Jackets' }}"
+                    >
+
+                </div>
+
+            </div>
+
+            <div class="lk-info">
+
+                <p class="hero-eyebrow">{{ b.eyebrow or 'Luxury Jackets' }}</p>
 
                 {% if b.title %}
-                <p class="hero-eyebrow">Forge &amp; Hide</p>
-                <h1>{{ b.title }}</h1>
+                <h2>{{ b.title }}</h2>
+                {% endif %}
+
+                {% if b.description %}
+                <p class="lk-text">{{ b.description }}</p>
                 {% endif %}
 
                 <a class="hero-link" href="{{ b.link or url_for('shop') }}">
@@ -206,7 +219,7 @@ Forge &amp; Hide | Handcrafted Luxury Leather
     </div>
 
     {% if banners2|length > 1 %}
-    <div class="hb-dots">
+    <div class="lk-dots">
         {% for b in banners2 %}
         <button type="button" class="{% if loop.first %}active{% endif %}" aria-label="Slide {{ loop.index }}"></button>
         {% endfor %}
@@ -222,8 +235,32 @@ Forge &amp; Hide | Handcrafted Luxury Leather
     var track = document.getElementById("hbTrack2");
     if (!hero || !track) { return; }
 
+    /* Enable the 3D tilt only on large screens with a mouse. */
+    var canTilt = window.matchMedia("(hover: hover) and (min-width: 901px)").matches
+        && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    function resetTilt() {
+        hero.style.setProperty("--rx", "0deg");
+        hero.style.setProperty("--ry", "0deg");
+    }
+
+    if (canTilt) {
+
+        hero.addEventListener("mousemove", function (e) {
+            var r = hero.getBoundingClientRect();
+            var x = (e.clientX - (r.left + r.width / 2)) / (r.width / 2);
+            var y = (e.clientY - (r.top + r.height / 2)) / (r.height / 2);
+            x = Math.max(-1, Math.min(1, x));
+            y = Math.max(-1, Math.min(1, y));
+            hero.style.setProperty("--ry", (x * 7) + "deg");
+            hero.style.setProperty("--rx", (-y * 4) + "deg");
+        });
+
+        hero.addEventListener("mouseleave", resetTilt);
+    }
+
     var total = track.children.length;
-    var dots = hero.querySelectorAll(".hb-dots button");
+    var dots = hero.querySelectorAll(".lk-dots button");
     if (total < 2) { return; }
 
     var current = 0;
@@ -245,7 +282,7 @@ Forge &amp; Hide | Handcrafted Luxury Leather
     function start() {
         if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) { return; }
         stop();
-        timer = setInterval(function () { show(current + 1); }, 6500);
+        timer = setInterval(function () { show(current + 1); }, 7000);
     }
 
     dots.forEach(function (d, i) {

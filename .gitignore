@@ -3,6 +3,7 @@ env/
 __pycache__/
 *.pyc
 .env
+project_dump.txt
 instance/forge_and_hide_backup.db
 *_backup*
 * - Copy*
@@ -10,3 +11,9 @@ templates_backup/
 templates - Copy/
 test_*.py
 check_db.py
+instance/
+*.db
+instance/
+*.db
+static/uploads/
+.vscode/

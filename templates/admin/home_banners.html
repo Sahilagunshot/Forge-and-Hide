@@ -17,26 +17,40 @@ Home Banners | Admin | Forge &amp; Hide
     <div class="field-row">
 
         <div class="field">
-            <label>Title (khali = koi title nahi)</label>
+            <label>Title (leave blank to omit)</label>
             <input type="text" name="title" value="{{ row.title if row and row.title else '' }}">
         </div>
 
         <div class="field">
-            <label>Order (chhota number pehle dikhta hai)</label>
+            <label>Display order (lower numbers appear first)</label>
             <input type="number" name="sort_order" value="{{ (row.sort_order if row else 0) or 0 }}">
         </div>
 
     </div>
 
+    {% if group_key == "second" %}
+
+    <div class="field">
+        <label>Eyebrow (optional; defaults to Luxury Jackets)</label>
+        <input type="text" name="eyebrow" value="{{ row.eyebrow if row and row.eyebrow else '' }}">
+    </div>
+
+    <div class="field">
+        <label>Description (a few lines about this jacket or look)</label>
+        <textarea name="description" rows="4">{{ row.description if row and row.description else '' }}</textarea>
+    </div>
+
+    {% endif %}
+
     <div class="field-row">
 
         <div class="field">
-            <label>Button ka text (khali = Explore the Collection)</label>
+            <label>Button text (defaults to Explore the Collection)</label>
             <input type="text" name="button_text" value="{{ row.button_text if row and row.button_text else '' }}">
         </div>
 
         <div class="field">
-            <label>Button ka link (khali = /shop)</label>
+            <label>Button link (defaults to /shop)</label>
             <input type="text" name="link" list="link-options" value="{{ row.link if row and row.link else '' }}">
         </div>
 
@@ -45,7 +59,7 @@ Home Banners | Admin | Forge &amp; Hide
     <div class="field">
 
         <label>
-            {% if row %}Photo badalni ho to nayi photo chuno{% else %}Photo (zaroori){% endif %}
+            {% if row %}Choose a new photo to replace this one{% else %}Photo (required){% endif %}
         </label>
 
         {% if row %}
@@ -59,7 +73,7 @@ Home Banners | Admin | Forge &amp; Hide
     <div class="field check-field">
         <label>
             <input type="checkbox" name="is_active" {% if not row or row.is_active %}checked{% endif %}>
-            Site par dikhao
+            Show on site
         </label>
     </div>
 
@@ -74,7 +88,7 @@ Home Banners | Admin | Forge &amp; Hide
 
 <div class="page-head">
     <h1>Home Banners</h1>
-    <p>Home page ke hero aur doosre banner yahin se badlo.</p>
+    <p>Manage the homepage hero and secondary banner here.</p>
 </div>
 
 <div class="shell-narrow">
@@ -93,25 +107,25 @@ Home Banners | Admin | Forge &amp; Hide
     </datalist>
 
     <p class="muted" style="margin-bottom:24px;line-height:1.8;">
-        Photo ko <strong>16:9 (jaise 1920 x 1080)</strong> me banao, aur product ko
-        <strong>beech ke 60% hisse</strong> me rakho, taaki laptop aur mobile par kate nahi.
-        Upload ki hui photo apne aap chhoti aur tez ho jati hai.
+        For the <strong>Main Hero</strong>, use a <strong>16:9 image (such as 1920 x 1080)</strong> and keep the product within the
+        <strong>center 60%</strong> so it remains visible on laptops and mobile screens.
+        Uploaded images are automatically resized and optimized.
     </p>
 
     {% if legacy_pending %}
     <div class="box">
 
-        <h3 style="margin-bottom:12px;">Purani hero photos</h3>
+        <h3 style="margin-bottom:12px;">Legacy hero photos</h3>
 
         <p class="muted" style="margin-bottom:16px;">
-            {{ legacy_pending|length }} photo abhi folder se chal rahi hain
+            {{ legacy_pending|length }} photo{% if legacy_pending|length != 1 %}s{% endif %} currently served from the uploads folder
             ({% for b in legacy_pending %}{{ b.file }}{% if not loop.last %}, {% endif %}{% endfor %}).
-            Unhe admin me laoge to yahin se badal sakoge.
+            Import them into the admin area to manage them here.
         </p>
 
         <form method="POST" action="{{ url_for('admin_import_home_banners') }}">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="hero-button btn-sm">Admin me le aao</button>
+            <button type="submit" class="hero-button btn-sm">Import into admin</button>
         </form>
 
     </div>
@@ -121,9 +135,14 @@ Home Banners | Admin | Forge &amp; Hide
 
     <h2 class="form-title" style="margin-top:44px;">{{ group.label }}</h2>
 
-    {% if group.key == "second" and not group.rows %}
-    <p class="muted" style="margin-bottom:16px;">
-        Abhi koi banner nahi hai, isliye ye section site par dikhta hi nahi.
+    {% if group.key == "second" %}
+    <p class="muted" style="margin-bottom:16px;line-height:1.8;">
+        This compact section has an <strong>image on the left</strong> (portrait, such as 1200 x 1800, shown in full with a subtle 3D tilt)
+        and <strong>your text on the right</strong>: an eyebrow, title, description, and button.
+        Use a <strong>mannequin shot</strong> first, followed by <strong>model photos</strong>.
+        Add multiple banners to show them as a slideshow; each banner can have its own text.
+        Leave the button link blank to use the first jacket category automatically.
+        {% if not group.rows %}There are no banners yet, so this section is hidden from the site.{% endif %}
     </p>
     {% endif %}
 
@@ -133,14 +152,14 @@ Home Banners | Admin | Forge &amp; Hide
 
         <h3 style="margin-bottom:16px;">
             Banner {{ loop.index }}
-            {% if not row.is_active %}<span class="muted">(chhupa hua)</span>{% endif %}
+            {% if not row.is_active %}<span class="muted">(hidden)</span>{% endif %}
         </h3>
 
         {{ banner_form(row, group.key, url_for('admin_update_home_banner', banner_id=row.id), 'Save') }}
 
-        <form method="POST" action="{{ url_for('admin_delete_home_banner', banner_id=row.id) }}" onsubmit="return confirm('Ye banner hataein?');" style="margin-top:12px;">
+        <form method="POST" action="{{ url_for('admin_delete_home_banner', banner_id=row.id) }}" onsubmit="return confirm('Delete this banner?');" style="margin-top:12px;">
             <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-            <button type="submit" class="hero-button btn-danger btn-sm">Banner hatao</button>
+            <button type="submit" class="hero-button btn-danger btn-sm">Delete banner</button>
         </form>
 
     </div>
@@ -149,16 +168,16 @@ Home Banners | Admin | Forge &amp; Hide
 
     <div class="box">
 
-        <h3 style="margin-bottom:16px;">Naya banner jodo</h3>
+        <h3 style="margin-bottom:16px;">Add a new banner</h3>
 
-        {{ banner_form(none, group.key, url_for('admin_add_home_banner'), 'Jodo') }}
+        {{ banner_form(none, group.key, url_for('admin_add_home_banner'), 'Add') }}
 
     </div>
 
     {% endfor %}
 
 
-    <h2 class="form-title" style="margin-top:44px;">Made to Order ki photo</h2>
+    <h2 class="form-title" style="margin-top:44px;">Made-to-order photo</h2>
 
     <div class="box">
 
@@ -171,17 +190,17 @@ Home Banners | Admin | Forge &amp; Hide
                 {% if mto_current %}
                 <img class="thumb-wide" src="{{ url_for('static', filename='uploads/' + mto_current) }}" alt="">
                 {% else %}
-                <p class="muted">Abhi koi khaas photo nahi lagi hai.</p>
+                <p class="muted">No custom photo has been selected yet.</p>
                 {% endif %}
 
-                <label>Nayi photo (lambi, landscape)</label>
+                <label>New photo (wide landscape)</label>
                 <input type="file" name="image" accept="image/png,image/jpeg,image/webp">
 
             </div>
 
             {% if mto_current %}
             <div class="field check-field">
-                <label><input type="checkbox" name="remove"> Ye photo hatao</label>
+                <label><input type="checkbox" name="remove"> Remove this photo</label>
             </div>
             {% endif %}
 

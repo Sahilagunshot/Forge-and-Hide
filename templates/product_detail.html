@@ -42,7 +42,7 @@
                 alt="{{ product.name }}"
             >
 
-            <button type="button" class="pd-plus" id="pdPlus" aria-label="Photo bade (full screen) me kholo"></button>
+            <button type="button" class="pd-plus" id="pdPlus" aria-label="Open full-screen gallery"></button>
             {% endif %}
 
         </div>
@@ -184,7 +184,7 @@
 
 {% if all_images %}
 
-<!-- ===== FULL SCREEN VIEWER (+ dabane par khulta hai) ===== -->
+<!-- ===== FULL-SCREEN VIEWER (opens with the plus button) ===== -->
 
 <div class="pdv" id="pdViewer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{ product.name }}">
 
@@ -194,7 +194,7 @@
 
         <span class="pdv-count" id="pdvCount"></span>
 
-        <button type="button" class="pdv-close" id="pdvClose" aria-label="Band karo">&times;</button>
+        <button type="button" class="pdv-close" id="pdvClose" aria-label="Close gallery">&times;</button>
 
     </div>
 
@@ -217,20 +217,20 @@
             <img class="pdv-img" id="pdvImg" alt="{{ product.name }}">
 
             {% if all_images|length > 1 %}
-            <button type="button" class="pdv-nav pdv-prev" id="pdvPrev" aria-label="Pichli photo">&#8249;</button>
-            <button type="button" class="pdv-nav pdv-next" id="pdvNext" aria-label="Agli photo">&#8250;</button>
+            <button type="button" class="pdv-nav pdv-prev" id="pdvPrev" aria-label="Previous image">&#8249;</button>
+            <button type="button" class="pdv-nav pdv-next" id="pdvNext" aria-label="Next image">&#8250;</button>
             {% endif %}
 
             <div class="pdv-tools">
-                <button type="button" id="pdvZoomOut" aria-label="Zoom kam karo">&minus;</button>
-                <button type="button" id="pdvZoomIn" aria-label="Zoom badhao">+</button>
+                <button type="button" id="pdvZoomOut" aria-label="Zoom out">&minus;</button>
+                <button type="button" id="pdvZoomIn" aria-label="Zoom in">+</button>
             </div>
 
         </div>
 
     </div>
 
-    <p class="pdv-hint">Photo par click ya scroll se zoom &nbsp;&middot;&nbsp; &larr; &rarr; se photo badlo &nbsp;&middot;&nbsp; Esc se band</p>
+    <p class="pdv-hint">Click or scroll over the image to zoom &nbsp;&middot;&nbsp; Use &larr; &rarr; to browse images &nbsp;&middot;&nbsp; Press Esc to close</p>
 
 </div>
 
