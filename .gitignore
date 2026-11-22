@@ -15,5 +15,7 @@ instance/
 *.db
 instance/
 *.db
-static/uploads/
+!static/uploads/
+static/uploads/*
+!static/uploads/made-to-order.jpg
 .vscode/

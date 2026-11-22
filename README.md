@@ -13,14 +13,17 @@ folders, and untracked/ignored files are not included. New product or banner dat
 entered in a local database, and new files under `static/uploads/`, are not
 synced by Git. Add or update that content on the live site separately; never
 replace the live database with a local copy because it contains production data.
+The `static/uploads/made-to-order.jpg` homepage photo is an exception: Git
+tracks it so that it deploys together with the code. Other admin-uploaded
+product and banner images still need a separate safe content sync.
 
 ### Push all saved project changes from VS Code
 
 1. Save all files that belong to this project.
 2. In VS Code **Source Control**, choose **Stage All Changes**, review the list,
    enter a commit message, then choose **Commit** and **Sync Changes**. Git
-   ignores the local database, virtualenv, `.env`, and new `static/uploads/`
-   files; review changes before committing.
+   ignores the local database, virtualenv, `.env`, and most new `static/uploads/`
+   files; the Made-to-Order photo is tracked. Review changes before committing.
 3. Use a PythonAnywhere Bash console and run:
 
    ```bash
