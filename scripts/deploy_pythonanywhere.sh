@@ -33,23 +33,27 @@ deployed_commit=""
 if [[ -r "$state_file" ]]; then
     deployed_commit="$(<"$state_file")"
 fi
+if [[ -z "$deployed_commit" ]] \
+    || ! git cat-file -e "$deployed_commit^{commit}" 2>/dev/null; then
+    deployed_commit="$current_commit"
+    has_deployed_state=0
+else
+    has_deployed_state=1
+fi
 
 if [[ "$current_commit" != "$target_commit" ]]; then
     git merge-base --is-ancestor "$current_commit" "$target_commit" \
         || fail "Remote branch is not a fast-forward; resolve the branch manually."
 fi
 
-if [[ "$target_commit" = "$deployed_commit" ]]; then
+if [[ "$has_deployed_state" -eq 1 && "$target_commit" = "$deployed_commit" ]]; then
     printf 'Already deployed: %s\n' "$target_commit"
     exit 0
 fi
 
-requirements_changed=1
-if [[ -n "$deployed_commit" ]] \
-    && git cat-file -e "$deployed_commit^{commit}" 2>/dev/null \
-    && git diff --quiet "$deployed_commit" "$target_commit" -- requirements.txt; then
-    requirements_changed=0
-fi
+requirements_changed=0
+git diff --quiet "$deployed_commit" "$target_commit" -- requirements.txt \
+    || requirements_changed=1
 
 if [[ "$current_commit" != "$target_commit" ]]; then
     git merge --ff-only "$target_commit"
