@@ -1,0 +1,471 @@
+{
+  "assets": [
+    {
+      "name": "1163b941b9484d83b94c30356d25f06c_THE_EMPEROR_LUXURY_BOMBER_3.png",
+      "sha256": "54b16c877e21e092eb9fdbbe7ef48c94fb975fa98b66990041a82d79158a2ce8",
+      "size": 852973
+    },
+    {
+      "name": "1904a7281ba741188eac4451ab2f7b82_WhatsApp_Image_2026-10-30_at_11.42.26_PM_1.jpeg",
+      "sha256": "d93adee57f8ea77bf84f7a141b25f0efcadd1c3a6b37ec6cec149eaffd5d1a9f",
+      "size": 109535
+    },
+    {
+      "name": "2604-W-JA056-W127-00_2.jpg",
+      "sha256": "bb6c4b95f9fc167c4241f2005bace1bf86cdbbede429ac824c71517766c814f6",
+      "size": 79517
+    },
+    {
+      "name": "7a404aee57da4d27ac3addf2d851c253_Navy_Suede_Jacket_Back_View.png",
+      "sha256": "1f5d6fc775df9dcd75857b1ac46ad5af667a5f5e02cbb4d4d157e8a37cfef528",
+      "size": 1899633
+    },
+    {
+      "name": "901a258e269e4cad8855c6f0cc6a32cc_Vintage_80s_Italian_Retro_Style_Distressed_Sports__Jacket_front_side.png",
+      "sha256": "f2869b3f5db5356eb25bd98c537cdfd6b77fad0cb5986b9ababa1eb83c8f0491",
+      "size": 882666
+    },
+    {
+      "name": "9b8a3b7073784be0b1d998c263604d3a_WhatsApp_Image_2026-10-25_at_1.08.43_AM.jpeg",
+      "sha256": "f4cac86c23bcc41714304c184944e44ffb01587cc9315de14dd08db6d38c1466",
+      "size": 68581
+    },
+    {
+      "name": "Generated_Image_October_31_2026_-_12_32AM.png",
+      "sha256": "7572c9572da63f1a85ad7943bb8c013332d3811c1b2cdbf0e801458eeb55a9ff",
+      "size": 1435121
+    },
+    {
+      "name": "Luxurious_Dark_Red_Velvet_Nap_Suede_Leather_Jacket.png",
+      "sha256": "71f8268a1b0df042a2c2cd2f0a89c3bc961756e06ade73f14a5387ce8337f486",
+      "size": 393762
+    },
+    {
+      "name": "Navy_Suede_Bomber_Jacket_Product_Shot.png",
+      "sha256": "42bc19c2a20d4743941786da19fa58d48e04c55c5f622d2cc3701096dd991310",
+      "size": 1874761
+    },
+    {
+      "name": "SUEDE_BERLIN_BIKER_JACKET_1950s_Heritage_Luxury_Edition.png",
+      "sha256": "e35e0fc34cfa0a09512b6fdb8b9f3a7ea8dbb83ac972828149f12d42c0dce142",
+      "size": 922235
+    },
+    {
+      "name": "Screenshot_2026-08-10_190507.png",
+      "sha256": "08ccfb07dd1e95a89319eeba33e5ee661adb174075e42d29c0859b66f6772d85",
+      "size": 1622099
+    },
+    {
+      "name": "Screenshot_2026-08-17_004101.png",
+      "sha256": "2a87d8fc10ddbb8cb638cdf4f74bcf00f0286273ec041ec5c7ebd79cb7e11141",
+      "size": 644922
+    },
+    {
+      "name": "Vintage_80s_Italian_Retro_Style_Distressed_Sports__Jacket_front_side.png",
+      "sha256": "f2869b3f5db5356eb25bd98c537cdfd6b77fad0cb5986b9ababa1eb83c8f0491",
+      "size": 882666
+    },
+    {
+      "name": "WhatsApp_Image_2026-11-06_at_8.22.36_AM.jpeg",
+      "sha256": "6077bc53267ece689e76a1d2d9b09b56cc8c00ce086b0ac718b33ee66243f13e",
+      "size": 165684
+    },
+    {
+      "name": "banner_570ff6233cdb4fdab9c06d726b6ba700.jpg",
+      "sha256": "8519763f7928b39c21b866c06a9088195f6cb6ddcafaa8891dc4da0d3b842bbd",
+      "size": 221194
+    },
+    {
+      "name": "e45dcee7a09544268a7d4c6b87041614_Luxurious_Dark_Red_Velvet_Nap_Suede_Leather_Jacket.png",
+      "sha256": "71f8268a1b0df042a2c2cd2f0a89c3bc961756e06ade73f14a5387ce8337f486",
+      "size": 393762
+    },
+    {
+      "name": "green-duffle-side-1.jpg",
+      "sha256": "9e935ca96c4989099911fe1900891e5d690ccc1f9d3964a12cdb5087827749fe",
+      "size": 279135
+    },
+    {
+      "name": "hero-1-forge-duffle.jpg",
+      "sha256": "c7ae17b7c6c072ddae6f3b979ed24df20a8f1c0561863b1a55c71229d12168d1",
+      "size": 182392
+    },
+    {
+      "name": "hero-2-tan-duffle.png",
+      "sha256": "38084437b599395b15f00f37c733e238473d72ad74fec25cbf4e183f96d47dd2",
+      "size": 1303342
+    },
+    {
+      "name": "made-to-order.jpg",
+      "sha256": "f0d35e93795166c22eefd219a058f7746ea67778a74db3e3e65b715036f954a4",
+      "size": 189884
+    },
+    {
+      "name": "tan-duffle-side-1.png",
+      "sha256": "56aedc00a462183c5296d253662e6cde313c70ed37b236e9242f051e51e97f91",
+      "size": 514069
+    }
+  ],
+  "format": 1,
+  "tables": {
+    "categories": [
+      {
+        "id": 1,
+        "name": " Check-In & Cabin Trolley Luggage",
+        "slug": "check-in-cabin-trolley-luggage"
+      },
+      {
+        "id": 2,
+        "name": "Designer Leather Jackets",
+        "slug": "designer-leather-jackets"
+      },
+      {
+        "id": 3,
+        "name": "Weekender & Duffle Bags",
+        "slug": "weekender-duffle-bags"
+      }
+    ],
+    "home_banners": [
+      {
+        "banner_group": "main",
+        "button_text": null,
+        "description": null,
+        "eyebrow": null,
+        "id": 1,
+        "image": "hero-1-forge-duffle.jpg",
+        "is_active": 1,
+        "link": "/shop?category=weekender-duffle-bags",
+        "sort_order": 1,
+        "title": "Forge Duffle"
+      },
+      {
+        "banner_group": "main",
+        "button_text": null,
+        "description": null,
+        "eyebrow": null,
+        "id": 2,
+        "image": "hero-2-tan-duffle.png",
+        "is_active": 1,
+        "link": "/shop?category=weekender-duffle-bags",
+        "sort_order": 2,
+        "title": "Tan Duffle"
+      },
+      {
+        "banner_group": "second",
+        "button_text": null,
+        "description": "From the House of Forge & Hide to the Runway of the World.",
+        "eyebrow": "The Noir Assymetric",
+        "id": 3,
+        "image": "banner_570ff6233cdb4fdab9c06d726b6ba700.jpg",
+        "is_active": 1,
+        "link": "/shop?category=designer-leather-jackets",
+        "sort_order": 1,
+        "title": "The Alligator JPG Inspired Jacket"
+      }
+    ],
+    "product_images": [
+      {
+        "id": 5,
+        "image": "e45dcee7a09544268a7d4c6b87041614_Luxurious_Dark_Red_Velvet_Nap_Suede_Leather_Jacket.png",
+        "product_id": 7,
+        "sort_order": 0
+      },
+      {
+        "id": 6,
+        "image": "901a258e269e4cad8855c6f0cc6a32cc_Vintage_80s_Italian_Retro_Style_Distressed_Sports__Jacket_front_side.png",
+        "product_id": 8,
+        "sort_order": 4
+      },
+      {
+        "id": 7,
+        "image": "9b8a3b7073784be0b1d998c263604d3a_WhatsApp_Image_2026-10-25_at_1.08.43_AM.jpeg",
+        "product_id": 5,
+        "sort_order": 0
+      },
+      {
+        "id": 8,
+        "image": "1163b941b9484d83b94c30356d25f06c_THE_EMPEROR_LUXURY_BOMBER_3.png",
+        "product_id": 5,
+        "sort_order": 1
+      },
+      {
+        "id": 9,
+        "image": "1904a7281ba741188eac4451ab2f7b82_WhatsApp_Image_2026-10-30_at_11.42.26_PM_1.jpeg",
+        "product_id": 10,
+        "sort_order": 0
+      },
+      {
+        "id": 10,
+        "image": "7a404aee57da4d27ac3addf2d851c253_Navy_Suede_Jacket_Back_View.png",
+        "product_id": 12,
+        "sort_order": 0
+      }
+    ],
+    "products": [
+      {
+        "care": "Care Instruction Soon",
+        "category_id": 3,
+        "created_at": "2026-07-27 19:21:03",
+        "description": "Forge & Hide: Voyager Classic (20\")\r\nCrafted from 100% premium full-grain leather, the Voyager Classic combines timeless heritage aesthetics with effortless travel utility. Engineered at a compact 20-inch length, this luxury duffle trolley glides seamlessly from airport terminals to executive suites, developing a rich patina with every journey.",
+        "dimensions": "20 inches",
+        "hardware": "Brass",
+        "id": 1,
+        "image": "tan-duffle-side-1.png",
+        "is_active": 1,
+        "is_bestseller": 0,
+        "is_featured": 0,
+        "leather_type": "Full grain Buffalo Hide",
+        "lining": "cashmere",
+        "long_description": "Forge & Hide: Voyager Classic (20\")\r\nCrafted from 100% premium full-grain leather, the Voyager Classic combines timeless heritage aesthetics with effortless travel utility. Engineered at a compact 20-inch length, this luxury duffle trolley glides seamlessly from airport terminals to executive suites, developing a rich patina with every journey.",
+        "made_in": "India",
+        "name": "FORGE & HIDE: Voyager Classic",
+        "price": 120000.0,
+        "short_description": "Short Description ",
+        "slug": "forge-hide-voyager-classic",
+        "stock": 20,
+        "warranty": "Lifetime Leather Warranty",
+        "weight": "1.7kg"
+      },
+      {
+        "care": "Coming Soon",
+        "category_id": 3,
+        "created_at": "2026-08-09 11:14:19",
+        "description": "𝗧𝗵𝗶𝘀 𝗶𝘀 𝗺𝗼𝗿𝗲 𝘁𝗵𝗮𝗻 𝗮 𝘁𝗿𝗮𝘃𝗲𝗹 𝗯𝗮𝗴.\r\nIt is an investment in 𝗰𝗿𝗮𝗳𝘁𝘀𝗺𝗮𝗻𝘀𝗵𝗶𝗽, 𝗵𝗲𝗿𝗶𝘁𝗮𝗴𝗲, and 𝘁𝗶𝗺𝗲𝗹𝗲𝘀𝘀 𝘀𝘁𝘆𝗹𝗲.\r\n𝗕𝘂𝗶𝗹𝘁 𝗦𝗹𝗼𝘄. 𝗖𝗿𝗮𝗳𝘁𝗲𝗱 𝗳𝗼𝗿 𝗮 𝗟𝗶𝗳𝗲𝘁𝗶𝗺𝗲.",
+        "dimensions": "20 inches",
+        "hardware": "Brass",
+        "id": 2,
+        "image": "green-duffle-side-1.jpg",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Full Grain Pull Up Leather",
+        "lining": "Polyster",
+        "long_description": "𝗙𝗢𝗥𝗚𝗘 𝗗𝗨𝗙𝗙𝗟𝗘 – 𝗙𝗼𝗿𝗲𝘀𝘁 𝗛𝗲𝗿𝗶𝘁𝗮𝗴𝗲 𝗘𝗱𝗶𝘁𝗶𝗼𝗻\r\nSome bags are made for a season. Others are made for a lifetime.\r\nThe 𝗙𝗼𝗿𝗴𝗲 𝗗𝘂𝗳𝗳𝗹𝗲 is handcrafted for those who appreciate 𝘁𝗶𝗺𝗲𝗹𝗲𝘀𝘀 𝗱𝗲𝘀𝗶𝗴𝗻, 𝗲𝘅𝗰𝗲𝗽𝘁𝗶𝗼𝗻𝗮𝗹 𝗰𝗿𝗮𝗳𝘁𝘀𝗺𝗮𝗻𝘀𝗵𝗶𝗽, and materials that become more beautiful with age. Wrapped in a rich 𝗕𝗿𝗶𝘁𝗶𝘀𝗵 𝗥𝗮𝗰𝗶𝗻𝗴 𝗚𝗿𝗲𝗲𝗻 𝗽𝗿𝗲𝗺𝗶𝘂𝗺 𝗳𝘂𝗹𝗹-𝗴𝗿𝗮𝗶𝗻 𝗼𝗶𝗹 𝗽𝘂𝗹𝗹-𝘂𝗽 𝗹𝗲𝗮𝘁𝗵𝗲𝗿 and accented with 𝗖𝗼𝗴𝗻𝗮𝗰 𝗕𝗿𝗼𝘄𝗻 leather details, this piece embodies understated luxury.\r\nEvery crease, every mark, and every journey adds character to the leather, creating a patina that is uniquely yours. Unlike synthetic materials, 𝗳𝘂𝗹𝗹-𝗴𝗿𝗮𝗶𝗻 𝗹𝗲𝗮𝘁𝗵𝗲𝗿 evolves with time, telling the story of every destination it has travelled.\r\nCrafted using carefully selected 𝗽𝗿𝗲𝗺𝗶𝘂𝗺 𝗳𝘂𝗹𝗹-𝗴𝗿𝗮𝗶𝗻 𝗼𝗶𝗹 𝗽𝘂𝗹𝗹-𝘂𝗽 𝗹𝗲𝗮𝘁𝗵𝗲𝗿, the bag offers a smooth hand feel with a subtle natural sheen and depth of colour. The leather's pull-up finish creates gentle tonal variations whenever it bends, a hallmark of premium heritage leather found in luxury travel goods.\r\nEvery detail has been designed with longevity in mind. From the reinforced leather handles and precisely stitched panels to the 𝗽𝗿𝗲𝗺𝗶𝘂𝗺 𝗮𝗻𝘁𝗶𝗾𝘂𝗲 𝗯𝗿𝗮𝘀𝘀-𝗳𝗶𝗻𝗶𝘀𝗵 𝗵𝗮𝗿𝗱𝘄𝗮𝗿𝗲, each component is chosen for durability and elegance. The detachable, adjustable leather shoulder strap offers comfort during extended travel, while the 𝗵𝗲𝗮𝘃𝘆-𝗱𝘂𝘁𝘆 𝗺𝗲𝘁𝗮𝗹 𝘇𝗶𝗽𝗽𝗲𝗿 ensures years of dependable performance.\r\nMeasuring 𝟮𝟬 𝗶𝗻𝗰𝗵𝗲𝘀 in length, the 𝗙𝗼𝗿𝗴𝗲 𝗗𝘂𝗳𝗳𝗹𝗲 strikes the perfect balance between capacity and portability. It is spacious enough for weekend getaways, business trips, gym essentials, or daily travel.\r\n",
+        "made_in": "India",
+        "name": "FORGE DUFFLE",
+        "price": 180000.0,
+        "short_description": "𝗙𝗢𝗥𝗚𝗘 𝗗𝗨𝗙𝗙𝗟𝗘 – 𝗙𝗼𝗿𝗲𝘀𝘁 𝗛𝗲𝗿𝗶𝘁𝗮𝗴𝗲 𝗘𝗱𝗶𝘁𝗶𝗼𝗻 Some bags are made for a season. Others are made for a lifetime.",
+        "slug": "forge-duffle",
+        "stock": 20,
+        "warranty": "Lifetime Leather Warranty",
+        "weight": "1.7"
+      },
+      {
+        "care": "Coming Soon",
+        "category_id": 2,
+        "created_at": "2026-08-10 13:26:34",
+        "description": "SUEDE BERLIN BIKER JACKET — 1950s Heritage Luxury Edition.\r\n\r\nProduct Identity\r\n\r\n",
+        "dimensions": "Cutom Made",
+        "hardware": "Brass",
+        "id": 3,
+        "image": "SUEDE_BERLIN_BIKER_JACKET_1950s_Heritage_Luxury_Edition.png",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Suede",
+        "lining": "Polyster",
+        "long_description": "SUEDE BERLIN BIKER JACKET — 1950s Heritage Luxury Edition.\r\n\r\nProduct Identity\r\n\r\nA refined interpretation of the iconic 1950s Berlin biker silhouette, handcrafted for modern luxury clients. Designed with clean asymmetric lines, rich suede texture, and minimalist detailing, this jacket combines vintage rebellion with quiet sophistication. Tailored for collectors, riders, and fashion enthusiasts who appreciate handcrafted leather artistry.\r\n\r\n1950s Berlin Biker Jacket crafted in premium full-grain suede with a rich tobacco finish.\r\nHand cut panels, luxury quilted shoulders, asymmetrical rider silhouette, and premium metal hardware finished with YKK/RiRi zippers.\r\n\r\nBuilt in limited quantities by skilled Dharavi artisans using heritage leather craftsmanship and modern luxury construction techniques.\r\n\r\nFor collectors who understand timeless leatherwear, not fast fashion.\r\n\r\n• Full Grain Premium Suede\r\n• Luxury Satin Lining\r\n• Tailored Slim Fit\r\n• Heavy Gauge Hardware\r\n• Handcrafted Precision\r\n",
+        "made_in": "India",
+        "name": "SUEDE BERLIN BIKER JACKET",
+        "price": 170000.0,
+        "short_description": "Product Identity  A refined interpretation of the iconic 1950s Berlin biker silhouette, handcrafted for modern luxury clients. Designed with clean asymmetric lines, rich suede texture, and minimalist detailing, this jacket combines vintage rebellion with quiet sophistication. ",
+        "slug": "suede-berlin-biker-jacket",
+        "stock": 19,
+        "warranty": "Lifetime_ Leather_Warranty ",
+        "weight": "1 kg "
+      },
+      {
+        "care": "Coming Soon",
+        "category_id": 2,
+        "created_at": "2026-08-10 13:34:23",
+        "description": "The Heritage D-Pocket Rider\r\nThis premium asymmetrical double-rider is a tribute to mid-century motorcycle culture, meticulously crafted for the modern connoisseur. \r\n\r\nCombining heavy-duty protection with a high-end designer aesthetic, this jacket is built to be a lifelong companion.\r\n\r\n",
+        "dimensions": "Custom Made ",
+        "hardware": "Brass",
+        "id": 4,
+        "image": "Screenshot_2026-08-10_190507.png",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Full Grain Buffalo ",
+        "lining": "Polyster",
+        "long_description": "The Heritage D-Pocket Rider\r\nThis premium asymmetrical double-rider is a tribute to mid-century motorcycle culture, meticulously crafted for the modern connoisseur. Combining heavy-duty protection with a high-end designer aesthetic, this jacket is built to be a lifelong companion.\r\n\r\nDesign Highlights::::\r\n\r\nIconic D-Pocket: A signature curved \"map pocket\" on the left chest, offering a bold vintage look and practical storage.\r\n\r\nAsymmetrical Cut: The offset main zipper creates a classic windproof double-layer across the chest for a sharp, aggressive silhouette.\r\n\r\nArtisanal Back Panel: Features a high-relief leather appliqué \"Master of the Deep\" winged anchor design—crafted with layered leather patches for a 3D texture that never fades.\r\n\r\nBespoke Branding: Finished with a signature R.S. Leatherwork vegetable-tanned leather neck tag, ensuring an authentic, handcrafted feel.\r\n\r\nMaterials & Build :::\r\n\r\nPremium Hide: Constructed from heavyweight, full-grain black leather with a natural sheen that develops a rich, personal patina over time.\r\n\r\nIndustrial Hardware: Outfitted with heavy-duty brass zippers, snap-down lapels, and functional epaulettes for a rugged, industrial finish.\r\n\r\nComfort & Fit: Includes an integrated waist belt and action-back gussets, providing maximum mobility and a tailored fit.\r\n\r\nThe Verdict: A perfect balance of raw street power and luxury craftsmanship, designed for those who demand a jacket as unique as their ride.",
+        "made_in": "India",
+        "name": "THE D POCKET HERITAGE RIDER LEATHER JACKET",
+        "price": 200000.0,
+        "short_description": "The Heritage D-Pocket Rider This premium asymmetrical double-rider is a tribute to mid-century motorcycle culture, meticulously crafted for the modern connoisseur. ",
+        "slug": "the-d-pocket-heritage-rider-leather-jacket",
+        "stock": 20,
+        "warranty": "Lifetime Leather Warranty.",
+        "weight": "1.5 kg"
+      },
+      {
+        "care": "Coming Soon ",
+        "category_id": 2,
+        "created_at": "2026-08-12 19:21:21",
+        "description": " 𝗧𝗘𝗖𝗛 𝗦𝗣𝗘𝗖𝗜𝗙𝗜𝗖𝗔𝗧𝗜𝗢𝗡𝗦\r\n𝗦𝗶𝗹𝗵𝗼𝘂𝗲𝘁𝘁𝗲: Premium tailored bomber jacket with classic collar and ribbed hem\r\n𝗖𝗿𝗮𝗳𝘁𝘀𝗺𝗮𝗻𝘀𝗵𝗶𝗽: 100% master-artisan handcrafted\r\n𝗘𝘅𝗰𝗹𝘂𝘀𝗶𝘃𝗶𝘁𝘆: One-on-one custom made-to-order — tailored specifically for you.\r\n",
+        "dimensions": "Custom Made ",
+        "hardware": "Ykk Excella ",
+        "id": 5,
+        "image": "WhatsApp_Image_2026-11-06_at_8.22.36_AM.jpeg",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Sheep Hide",
+        "lining": "Premium Polyster Blend",
+        "long_description": " 𝗧𝗘𝗖𝗛 𝗦𝗣𝗘𝗖𝗜𝗙𝗜𝗖𝗔𝗧𝗜𝗢𝗡𝗦\r\n𝗦𝗶𝗹𝗵𝗼𝘂𝗲𝘁𝘁𝗲: Premium tailored bomber jacket with classic collar and ribbed hem\r\n𝗖𝗿𝗮𝗳𝘁𝘀𝗺𝗮𝗻𝘀𝗵𝗶𝗽: 100% master-artisan handcrafted\r\n𝗘𝘅𝗰𝗹𝘂𝘀𝗶𝘃𝗶𝘁𝘆: One-on-one custom made-to-order — tailored specifically for you\r\n𝗗𝗲𝘀𝗶𝗴𝗻: Front zipper closure\r\n🧵 𝗨𝗹𝘁𝗿𝗮-𝗟𝘂𝘅𝘂𝗿𝘆 𝗠𝗮𝘁𝗲𝗿𝗶𝗮𝗹𝘀\r\n𝗦𝗵𝗲𝗹𝗹: Premium goat/sheepskin leather with a flawless high-gloss deep burgundy patent lacquer finish\r\n𝗛𝗮𝗿𝗱𝘄𝗮𝗿𝗲: YKK #8 metal zipper, center front — smooth-glide, ultra-polished teeth for a heavy-duty luxury feel\r\n𝗣𝗼𝗰𝗸𝗲𝘁𝘀: Twin front zip pockets with clean topstitched detailing; optional interior zip pocket (YKK #3) available on request — custom-placed as per customer preference\r\n𝗟𝗶𝗻𝗶𝗻𝗴: Premium interior lining — breathable and smooth against the skin\r\n𝗖𝘂𝗳𝗳𝘀 & 𝗛𝗲𝗺: Ribbed knit cuffs and hem with strong shape recovery\r\n📐 𝗖𝗼𝗻𝘀𝘁𝗿𝘂𝗰𝘁𝗶𝗼𝗻\r\nHand-finished stitching throughout for maximum seam strength and a clean, tailored finish; meticulously hand-finished edges along all visible leather panel borders.\r\n",
+        "made_in": "India",
+        "name": "👑 𝗧𝗛𝗘 𝗘𝗠𝗣𝗘𝗥𝗢𝗥",
+        "price": 180000.0,
+        "short_description": "👑 𝗧𝗛𝗘 \"𝗘𝗠𝗣𝗘𝗥𝗢𝗥\" 𝗟𝗨𝗫𝗨𝗥𝗬 𝗕𝗢𝗠𝗕𝗘𝗥 – 𝗧𝗘𝗖𝗛 𝗦𝗣𝗘𝗖𝗜𝗙𝗜𝗖𝗔𝗧𝗜𝗢𝗡𝗦  🧵 𝗨𝗹𝘁𝗿𝗮-𝗟𝘂𝘅𝘂𝗿𝘆 𝗠𝗮𝘁𝗲𝗿𝗶𝗮𝗹𝘀",
+        "slug": "the-emperor-luxury-bomber",
+        "stock": 17,
+        "warranty": "Lifetime Leather Warranty",
+        "weight": "1.4 kg"
+      },
+      {
+        "care": "",
+        "category_id": 2,
+        "created_at": "2026-08-14 06:00:44",
+        "description": "",
+        "dimensions": "",
+        "hardware": "",
+        "id": 7,
+        "image": "Luxurious_Dark_Red_Velvet_Nap_Suede_Leather_Jacket.png",
+        "is_active": 1,
+        "is_bestseller": 0,
+        "is_featured": 0,
+        "leather_type": "",
+        "lining": "",
+        "long_description": "",
+        "made_in": "",
+        "name": "Suede Velvet Leather Jacket ",
+        "price": 175000.0,
+        "short_description": "",
+        "slug": "lastra",
+        "stock": 20,
+        "warranty": "",
+        "weight": ""
+      },
+      {
+        "care": "Lahsun ",
+        "category_id": 2,
+        "created_at": "2026-08-14 10:14:19",
+        "description": "Lahsun ",
+        "dimensions": "Lahsun ",
+        "hardware": "Lahsun ",
+        "id": 8,
+        "image": "Vintage_80s_Italian_Retro_Style_Distressed_Sports__Jacket_front_side.png",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Lahsun ",
+        "lining": "Lahsun ",
+        "long_description": "Lahsun ",
+        "made_in": "Lahsun ",
+        "name": "The Cowboy jacket ",
+        "price": 150000.0,
+        "short_description": "Lahsun ",
+        "slug": "lahsun",
+        "stock": 20,
+        "warranty": "Lahsun ",
+        "weight": "Lahsun "
+      },
+      {
+        "care": "",
+        "category_id": 1,
+        "created_at": "2026-08-17 06:43:58",
+        "description": "Full-grain leather. Hand-burnished finish. Built to travel a lifetime.\r\nHandcrafted in full-grain leather with precision hardware — luggage built like an heirloom, not an accessory.\r\nWhere heritage leathercraft meets modern travel — every Sovereign Trolley is hand-finished for a lifetime of journeys.",
+        "dimensions": "20 inches",
+        "hardware": "YKK ",
+        "id": 9,
+        "image": "Screenshot_2026-08-17_004101.png",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "Full Grain Buffalo ",
+        "lining": "Premium Twill (cotton twill)",
+        "long_description": "The \"𝗛𝘂𝘀𝘁𝗹𝗲 & 𝗛𝗲𝗿𝗶𝘁𝗮𝗴𝗲\" Trolley is where heritage leathercraft meets modern travel. Every panel is cut from genuine full-grain hide, hand-burnished and finished to develop a deeper, richer patina with every journey. Structured yet lightweight, it carries the same standard of craftsmanship trusted by heritage leather houses — because we've made for them too. This isn't mass-produced luggage; it's a piece built to travel with you for decades.               \r\n\r\n\r\n\r\nHardware & Build:\r\n\r\nGenuine Indian YKK zippers for a lifetime of smooth, silent operation\r\n360° rotating precision wheels for effortless maneuverability\r\nReinforced corner guards and stitched leather piping for structural durability\r\nTelescopic aluminium trolley handle, tested for repeated extension\r\nBrass-toned hardware, tarnish-resistant finish\r\n\r\nCompartments:\r\n\r\nSpacious main compartment with compression straps to secure contents\r\nDedicated front zip pocket for documents, chargers, and essentials\r\nSoft interior lining to protect garments and valuables\r\n\r\nCare Instructions:\r\n\r\nWipe with a soft, dry cloth after each use\r\nCondition with leather balm every 3–4 months to preserve suppleness\r\nAvoid prolonged direct sunlight and moisture exposure\r\nStore upright in breathable fabric when not in use\r\n\r\nAvailable Sizes: 20\"· 22\" · 24\" · 28\"\r\n\r\nAll sizes are in Inches : Height Calculated from wheels to top handle.\r\n\r\nEvery piece can be custom made to order — choice of leather, lining, and hardware finish.\r\n\r\n📩 Connect with us on WhatsApp or Instagram to begin your bespoke order.",
+        "made_in": "India",
+        "name": "𝗧𝗵𝗲 \"𝗛𝘂𝘀𝘁𝗹𝗲 & 𝗛𝗲𝗿𝗶𝘁𝗮𝗴𝗲 Check In Luggage",
+        "price": 80000.0,
+        "short_description": "A travel companion cut from full-grain leather and finished by hand — built for those who arrive as intentionally as they leave.",
+        "slug": "the-hustle-heritage-check-in-luggage",
+        "stock": 19,
+        "warranty": "Lifetime Leather Warranty ",
+        "weight": "2.5 kgs"
+      },
+      {
+        "care": "Hollingster",
+        "category_id": 2,
+        "created_at": "2026-10-30 18:36:50",
+        "description": "Hollingster",
+        "dimensions": "Hollingster",
+        "hardware": "Hollingster",
+        "id": 10,
+        "image": "Generated_Image_October_31_2026_-_12_32AM.png",
+        "is_active": 1,
+        "is_bestseller": 0,
+        "is_featured": 0,
+        "leather_type": "Hollingster",
+        "lining": "Hollingster",
+        "long_description": "Hollingster",
+        "made_in": "Hollingster",
+        "name": "Hollingster",
+        "price": 90000.0,
+        "short_description": "Hollingster",
+        "slug": "hollingster",
+        "stock": 7,
+        "warranty": "Hollingster",
+        "weight": "Hollingster"
+      },
+      {
+        "care": "testing",
+        "category_id": 2,
+        "created_at": "2026-11-04 13:59:30",
+        "description": "testing",
+        "dimensions": "testing",
+        "hardware": "testing",
+        "id": 11,
+        "image": "2604-W-JA056-W127-00_2.jpg",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "testing",
+        "lining": "testing",
+        "long_description": "testingtestingtestingtestingtestingtestingtestingtestingtestingtesting",
+        "made_in": "testing",
+        "name": "TEST PRODUCT",
+        "price": 250000.0,
+        "short_description": "testing",
+        "slug": "test-product",
+        "stock": 2,
+        "warranty": "testing",
+        "weight": "testing"
+      },
+      {
+        "care": "",
+        "category_id": 2,
+        "created_at": "2026-11-05 06:17:18",
+        "description": "",
+        "dimensions": "",
+        "hardware": "",
+        "id": 12,
+        "image": "Navy_Suede_Bomber_Jacket_Product_Shot.png",
+        "is_active": 1,
+        "is_bestseller": 1,
+        "is_featured": 0,
+        "leather_type": "",
+        "lining": "",
+        "long_description": "",
+        "made_in": "",
+        "name": "Oliver",
+        "price": 250000.0,
+        "short_description": "",
+        "slug": "oliver",
+        "stock": 3,
+        "warranty": "",
+        "weight": ""
+      }
+    ]
+  }
+}

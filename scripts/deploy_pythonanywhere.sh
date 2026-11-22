@@ -54,6 +54,15 @@ fi
 requirements_changed=0
 git diff --quiet "$deployed_commit" "$target_commit" -- requirements.txt \
     || requirements_changed=1
+catalog_changed=0
+if [[ "$has_deployed_state" -eq 0 ]]; then
+    if [[ -f deployment/catalog.json ]]; then
+        catalog_changed=1
+    fi
+else
+    git diff --quiet "$deployed_commit" "$target_commit" -- \
+        deployment/catalog.json deployment/uploads || catalog_changed=1
+fi
 
 if [[ "$current_commit" != "$target_commit" ]]; then
     git merge --ff-only "$target_commit"
@@ -64,6 +73,13 @@ if [[ "$requirements_changed" -eq 1 ]]; then
 fi
 
 "$VIRTUAL_ENV/bin/python" -m flask --app app db upgrade
+if [[ "$catalog_changed" -eq 1 ]]; then
+    "$VIRTUAL_ENV/bin/python" scripts/import_deploy_catalog.py \
+        --snapshot deployment/catalog.json \
+        --assets deployment/uploads \
+        --database instance/forge_and_hide.db \
+        --apply
+fi
 touch "$WSGI_FILE"
 
 state_tmp="${state_file}.tmp"

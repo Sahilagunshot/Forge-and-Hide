@@ -8,22 +8,22 @@ PythonAnywhere Bash console. It fast-forwards a clean `main` checkout, installs
 requirements only when they changed, applies committed database migrations, and
 touches the WSGI file to reload the app.
 
-This deploys **committed changes pushed to `main`**. Unsaved files, other local
-folders, and untracked/ignored files are not included. New product or banner data
-entered in a local database, and new files under `static/uploads/`, are not
-synced by Git. Add or update that content on the live site separately; never
-replace the live database with a local copy because it contains production data.
-The `static/uploads/made-to-order.jpg` homepage photo is an exception: Git
-tracks it so that it deploys together with the code. Other admin-uploaded
-product and banner images still need a separate safe content sync.
+This deploys **committed changes pushed to `main`**. This checkout also exports
+the local catalog when you commit: categories, products, galleries, homepage
+banners, and only the images those rows use. The Made-to-Order photo is included
+too. Orders, order items, customers, and admin accounts are never exported.
+PythonAnywhere makes a database backup before importing changed catalog data,
+preserves stock for products already on the live site, and keeps removed
+products in the database but hides them from the storefront.
 
 ### Push all saved project changes from VS Code
 
-1. Save all files that belong to this project.
+1. Save all files and product/banner changes in the local site.
 2. In VS Code **Source Control**, choose **Stage All Changes**, review the list,
-   enter a commit message, then choose **Commit** and **Sync Changes**. Git
-   ignores the local database, virtualenv, `.env`, and most new `static/uploads/`
-   files; the Made-to-Order photo is tracked. Review changes before committing.
+   enter a commit message, then choose **Commit** and **Sync Changes**. The
+   pre-commit hook refreshes the catalog snapshot and adds it to the commit.
+   The local database itself, orders, customers, admin accounts, virtualenv,
+   `.env`, and unused uploaded images are not pushed.
 3. Use a PythonAnywhere Bash console and run:
 
    ```bash
@@ -36,6 +36,13 @@ The script stops safely if the branch is not `main`, the checkout has local
 changes, the update is not a fast-forward, the virtualenv is not active, or the
 WSGI path is invalid. If a deployment is blocked by local changes, inspect them
 before resolving anything; do not use `git reset --hard`.
+
+The pre-commit hook is enabled for this checkout. If you clone the project
+again on another computer, enable it once with:
+
+```bash
+git config core.hooksPath .githooks
+```
 
 Model changes need a committed migration under `migrations/versions/`; the
 deploy script applies committed migrations with `flask db upgrade`. Paid
